@@ -1,0 +1,27 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { Header } from "@/components/site/Header";
+import { Footer } from "@/components/site/Footer";
+
+export const Route = createFileRoute("/about")({
+  head: () => ({
+    meta: [
+      { title: "About — Mahadevi Computers" },
+      { name: "description", content: "About Mahadevi Computers & Education Center — curated learning resources by Subhash." },
+    ],
+  }),
+  component: () => (
+    <>
+      <Header />
+      <main className="mx-auto max-w-3xl px-6 pt-40 pb-32 min-h-screen">
+        <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">About</p>
+        <h1 className="mt-3 text-5xl font-semibold tracking-tighter">Learning, done right.</h1>
+        <p className="mt-8 text-lg text-muted-foreground leading-relaxed">
+          Mahadevi Computers & Education Center is a small, opinionated library of learning resources
+          curated by Subhash. Every video, PDF, and assignment on this platform was chosen because it
+          teaches something worth learning.
+        </p>
+      </main>
+      <Footer />
+    </>
+  ),
+});
