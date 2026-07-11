@@ -1,9 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { Heart, Star, ArrowLeft, Lock, Unlock, CheckCircle } from "lucide-react";
+import {
+  Heart, Star, ArrowLeft, Lock, Unlock, CheckCircle,
+  FileText, ExternalLink, Download, X, Loader2,
+} from "lucide-react";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { Button } from "@/components/ui/button";
@@ -12,7 +15,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 
-// IMPORT BACKEND FUNCTIONS DIRECTLY (Do not use useServerFn)
 import {
   createRazorpayOrder,
   verifyRazorpayPayment,
@@ -40,7 +42,12 @@ function ResourceDetail() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
+
   const [isProcessingBuy, setIsProcessingBuy] = useState(false);
+  const [isLoadingDoc, setIsLoadingDoc] = useState(false);
+  const [documentUrl, setDocumentUrl] = useState<string | null>(null);
+  const [documentType, setDocumentType] = useState<"pdf" | "file" | "external" | null>(null);
+  const [thumbnailError, setThumbnailError] = useState(false);
 
   const { data: resource, isLoading } = useQuery({
     queryKey: ["resource", slug],
@@ -49,10 +56,13 @@ function ResourceDetail() {
         .from("resources")
         .select("*, categories(name, slug)")
         .eq("slug", slug)
-        .eq("is_published", true)
         .maybeSingle();
       if (data) {
-        supabase.from("resources").update({ views_count: (data.views_count ?? 0) + 1 }).eq("id", data.id).then(() => {});
+        supabase
+          .from("resources")
+          .update({ views_count: (data.views_count ?? 0) + 1 })
+          .eq("id", data.id)
+          .then(() => {});
       }
       return data;
     },
@@ -124,33 +134,30 @@ function ResourceDetail() {
     document.body.appendChild(s);
   }, []);
 
+  // Clear document view when resource changes
+  useEffect(() => {
+    setDocumentUrl(null);
+    setDocumentType(null);
+  }, [slug]);
+
   async function handleBuy() {
-    console.log("1. Buy button clicked");
-    
     if (!user) {
-      console.log("2. No user found. Redirecting...");
-      alert("Please sign in to buy this resource.");
+      toast.error("Please sign in to purchase this resource");
       return navigate({ to: "/auth", search: { next: `/resources/${slug}` } });
     }
-    
     if (!resource) return;
-    
+
     setIsProcessingBuy(true);
-    console.log("3. Calling createRazorpayOrder for Resource ID:", resource.id);
-    
+
     try {
-      // Calling the backend function directly
       const order = await createRazorpayOrder({ data: { resourceId: resource.id } });
-      console.log("4. Order created successfully from backend:", order);
-      
+
       if (!window.Razorpay) {
-        alert("Payment SDK is blocked. Please disable your Adblocker.");
-        toast.error("Payment SDK not loaded");
+        toast.error("Payment SDK failed to load. Please disable any ad-blocker and try again.");
         setIsProcessingBuy(false);
         return;
       }
-      
-      console.log("5. Opening Razorpay Modal...");
+
       const rzp = new window.Razorpay({
         key: order.keyId,
         amount: order.amount,
@@ -158,11 +165,14 @@ function ResourceDetail() {
         name: "Mahadevi Computers",
         description: order.resourceTitle,
         order_id: order.orderId,
-        theme: { color: "#111111" },
-        handler: async (resp: any) => {
-          console.log("6. Payment succeeded. Verifying signature on backend...");
+        theme: { color: "#6366f1" },
+        handler: async (resp: {
+          razorpay_order_id: string;
+          razorpay_payment_id: string;
+          razorpay_signature: string;
+        }) => {
           try {
-            toast.loading("Verifying payment...", { id: "payment-verify" });
+            toast.loading("Verifying payment…", { id: "payment-verify" });
             await verifyRazorpayPayment({
               data: {
                 purchaseId: order.purchaseId,
@@ -171,45 +181,60 @@ function ResourceDetail() {
                 razorpay_signature: resp.razorpay_signature,
               },
             });
-            console.log("7. Verification successful! Unlocking document.");
-            toast.success("Payment successful! Resource unlocked.", { id: "payment-verify" });
+            toast.success("🎉 Payment successful! Resource unlocked.", { id: "payment-verify" });
+            // Refresh purchase status — button will change to "View Document"
             qc.invalidateQueries({ queryKey: ["purchase", resource.id, user.id] });
           } catch (e) {
-            console.error("Verification failed:", e);
-            alert("Verification Error: " + (e as Error).message);
-            toast.error((e as Error).message, { id: "payment-verify" });
+            toast.error("Verification failed: " + (e as Error).message, { id: "payment-verify" });
           } finally {
             setIsProcessingBuy(false);
           }
         },
         modal: {
-          ondismiss: function() {
-            console.log("Modal closed by user.");
-            setIsProcessingBuy(false);
-          }
-        }
+          ondismiss: () => setIsProcessingBuy(false),
+        },
       });
       rzp.open();
     } catch (e) {
-      console.error("Failed to create order:", e);
-      alert("Checkout Error: " + (e as Error).message);
-      toast.error((e as Error).message);
+      toast.error("Checkout error: " + (e as Error).message);
       setIsProcessingBuy(false);
     }
   }
 
-  async function handleDownload() {
+  async function handleViewDocument() {
     if (!resource) return;
+
+    // If already loaded, toggle the viewer closed
+    if (documentUrl) {
+      setDocumentUrl(null);
+      setDocumentType(null);
+      return;
+    }
+
+    setIsLoadingDoc(true);
     try {
-      const { url } = await getResourceDownloadUrl({ data: { resourceId: resource.id } });
-      window.open(url, "_blank");
+      const result = await getResourceDownloadUrl({ data: { resourceId: resource.id } });
+
+      if (result.type === "external") {
+        // External URL — open in new tab
+        window.open(result.url, "_blank", "noopener,noreferrer");
+        toast.success("Opened external resource in new tab");
+      } else {
+        setDocumentUrl(result.url);
+        setDocumentType(result.type);
+        // Scroll down to the viewer
+        setTimeout(() => {
+          document.getElementById("document-viewer")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
+      }
     } catch (e) {
-      alert("Download Error: " + (e as Error).message);
-      toast.error((e as Error).message);
+      toast.error("Could not load document: " + (e as Error).message);
+    } finally {
+      setIsLoadingDoc(false);
     }
   }
 
-  const canDownload = resource && (resource.is_free || purchase);
+  const canAccess = resource && (resource.is_free || purchase);
 
   if (isLoading) {
     return (
@@ -228,7 +253,7 @@ function ResourceDetail() {
       <>
         <Header />
         <main className="mx-auto max-w-md px-6 pt-40 pb-32 min-h-screen text-center">
-          <h1 className="text-3xl font-semibold tracking-tighter">Not found</h1>
+          <h1 className="text-3xl font-semibold tracking-tighter">Resource not found</h1>
           <Link to="/resources" className="mt-6 inline-flex items-center gap-1 text-sm underline">
             <ArrowLeft className="h-3 w-3" /> Back to library
           </Link>
@@ -242,55 +267,228 @@ function ResourceDetail() {
       <Header />
       <main className="mx-auto max-w-5xl px-6 pt-32 pb-24 min-h-screen">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <Link to="/resources" className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground">
+          <Link
+            to="/resources"
+            className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+          >
             <ArrowLeft className="h-3 w-3" /> Library
           </Link>
+
           <h1 className="mt-4 text-4xl md:text-5xl font-semibold tracking-tighter">{resource.title}</h1>
+          {resource.description && (
+            <p className="mt-4 text-lg text-muted-foreground max-w-2xl">{resource.description}</p>
+          )}
         </motion.div>
 
         <div className="mt-10 grid gap-10 lg:grid-cols-3">
+          {/* LEFT: thumbnail + reviews */}
           <div className="lg:col-span-2">
-            <div className="aspect-[16/9] rounded-2xl overflow-hidden border border-border bg-subtle relative">
-              {resource.thumbnail_url ? (
-                <img src={resource.thumbnail_url} alt={resource.title} className="w-full h-full object-cover" />
+            {/* Thumbnail */}
+            <div className="aspect-[16/9] rounded-2xl overflow-hidden border border-border bg-muted relative">
+              {resource.thumbnail_url && !thumbnailError ? (
+                <img
+                  src={resource.thumbnail_url}
+                  alt={resource.title}
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                  onError={() => setThumbnailError(true)}
+                />
               ) : (
-                <div className="w-full h-full" style={{ background: "var(--gradient-radial)" }} />
+                <div
+                  className="w-full h-full flex items-center justify-center"
+                  style={{ background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%)" }}
+                >
+                  <FileText className="h-16 w-16 text-white/30" />
+                </div>
               )}
             </div>
 
+            {/* Reviews section */}
             <section className="mt-14">
               <h2 className="text-xl font-semibold tracking-tight">Reviews</h2>
+              {reviews && reviews.length > 0 ? (
+                <div className="mt-4 space-y-4">
+                  {reviews.map((r: any) => (
+                    <div key={r.id} className="rounded-xl border border-border p-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">{r.profiles?.full_name ?? "Anonymous"}</span>
+                        <div className="flex gap-0.5">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <Star key={i} className={`h-3 w-3 ${i < r.rating ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground"}`} />
+                          ))}
+                        </div>
+                      </div>
+                      {r.comment && <p className="mt-2 text-sm text-muted-foreground">{r.comment}</p>}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-4 text-sm text-muted-foreground">No reviews yet. Be the first!</p>
+              )}
               {user && purchase && <ReviewForm resourceId={resource.id} />}
             </section>
           </div>
 
+          {/* RIGHT: price card */}
           <aside className="lg:sticky lg:top-28 h-fit">
             <div className="rounded-2xl border border-border bg-surface p-6 relative overflow-hidden">
-              
-              {canDownload && !resource.is_free && (
-                <div className="absolute top-0 right-0 bg-green-500/10 text-green-500 px-3 py-1.5 rounded-bl-xl text-xs font-semibold flex items-center gap-1.5 z-10">
+              {/* Unlocked badge */}
+              {canAccess && !resource.is_free && (
+                <div className="absolute top-0 right-0 bg-green-500/10 text-green-400 px-3 py-1.5 rounded-bl-xl text-xs font-semibold flex items-center gap-1.5 z-10">
                   <CheckCircle className="h-3.5 w-3.5" /> Unlocked
                 </div>
               )}
 
+              {/* Price */}
               <div className="text-3xl font-semibold tracking-tighter">
-                {resource.is_free || resource.price_inr <= 0 ? "Free" : `₹${resource.price_inr}`}
+                {resource.is_free || Number(resource.price_inr) <= 0
+                  ? <span className="text-green-400">Free</span>
+                  : `₹${resource.price_inr}`}
               </div>
-              
+
+              {/* Action buttons */}
               <div className="mt-6 space-y-2">
-                {canDownload ? (
-                  <Button className="w-full h-11 rounded-full bg-green-600 hover:bg-green-700 text-white" onClick={handleDownload}>
-                    <Unlock className="h-4 w-4 mr-2" /> View & Download Document
+                {canAccess ? (
+                  <Button
+                    id="view-document-btn"
+                    className="w-full h-11 rounded-full bg-green-600 hover:bg-green-700 text-white"
+                    onClick={handleViewDocument}
+                    disabled={isLoadingDoc}
+                  >
+                    {isLoadingDoc ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Loading document…
+                      </>
+                    ) : documentUrl ? (
+                      <>
+                        <X className="h-4 w-4 mr-2" /> Close Document
+                      </>
+                    ) : (
+                      <>
+                        <Unlock className="h-4 w-4 mr-2" /> View &amp; Download Document
+                      </>
+                    )}
                   </Button>
                 ) : (
-                  <Button className="w-full h-11 rounded-full" onClick={handleBuy} disabled={isProcessingBuy}>
-                    <Lock className="h-4 w-4 mr-2" /> {isProcessingBuy ? "Processing Payment..." : "Buy to Unlock"}
+                  <Button
+                    id="buy-unlock-btn"
+                    className="w-full h-11 rounded-full"
+                    onClick={handleBuy}
+                    disabled={isProcessingBuy}
+                  >
+                    {isProcessingBuy ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Processing…
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="h-4 w-4 mr-2" /> Buy &amp; Unlock — ₹{resource.price_inr}
+                      </>
+                    )}
                   </Button>
+                )}
+
+                {/* Wishlist */}
+                {user && !canAccess && (
+                  <Button
+                    variant="outline"
+                    className="w-full h-10 rounded-full"
+                    onClick={() => toggleWish.mutate()}
+                  >
+                    <Heart className={`h-4 w-4 mr-2 ${wishItem ? "fill-rose-500 text-rose-500" : ""}`} />
+                    {wishItem ? "Wishlisted" : "Add to Wishlist"}
+                  </Button>
+                )}
+              </div>
+
+              {/* Meta */}
+              <div className="mt-6 space-y-1.5 text-xs text-muted-foreground font-mono">
+                {(resource as any).categories?.name && (
+                  <div>Category: {(resource as any).categories.name}</div>
+                )}
+                <div>Views: {resource.views_count ?? 0}</div>
+                {!resource.is_free && (
+                  <div className="text-green-600/70">✓ One-time purchase — access forever</div>
                 )}
               </div>
             </div>
           </aside>
         </div>
+
+        {/* ─── DOCUMENT VIEWER ─── */}
+        <AnimatePresence>
+          {documentUrl && (
+            <motion.div
+              id="document-viewer"
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 24 }}
+              transition={{ duration: 0.4 }}
+              className="mt-12"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold tracking-tight flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-green-400" />
+                  {resource.title}
+                </h2>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={documentUrl}
+                    download
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-mono text-muted-foreground hover:text-foreground border border-border rounded-full px-3 py-1.5 transition-colors"
+                  >
+                    <Download className="h-3 w-3" /> Download
+                  </a>
+                  <a
+                    href={documentUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-mono text-muted-foreground hover:text-foreground border border-border rounded-full px-3 py-1.5 transition-colors"
+                  >
+                    <ExternalLink className="h-3 w-3" /> Open in tab
+                  </a>
+                  <button
+                    onClick={() => { setDocumentUrl(null); setDocumentType(null); }}
+                    className="inline-flex items-center gap-1.5 text-xs font-mono text-muted-foreground hover:text-foreground border border-border rounded-full px-3 py-1.5 transition-colors"
+                  >
+                    <X className="h-3 w-3" /> Close
+                  </button>
+                </div>
+              </div>
+
+              {documentType === "pdf" ? (
+                <div className="rounded-2xl overflow-hidden border border-border bg-muted" style={{ height: "80vh" }}>
+                  <iframe
+                    src={`${documentUrl}#toolbar=1&navpanes=1&scrollbar=1`}
+                    title={resource.title}
+                    className="w-full h-full"
+                    style={{ border: "none" }}
+                  />
+                </div>
+              ) : (
+                /* Non-PDF file: show a prominent download card */
+                <div className="rounded-2xl border border-border bg-surface p-8 text-center">
+                  <FileText className="h-12 w-12 text-green-400 mx-auto" />
+                  <p className="mt-4 text-lg font-medium">{resource.title}</p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    This file cannot be previewed in the browser. Click below to download it.
+                  </p>
+                  <a
+                    href={documentUrl}
+                    download
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-6 inline-flex items-center gap-2 rounded-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-sm font-medium transition-colors"
+                  >
+                    <Download className="h-4 w-4" /> Download File
+                  </a>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
       <Footer />
     </>
@@ -306,16 +504,33 @@ function ReviewForm({ resourceId }: { resourceId: string }) {
   async function submit() {
     setBusy(true);
     const { data: u } = await supabase.auth.getUser();
-    if (!u.user) return;
-    await supabase.from("reviews").upsert({ resource_id: resourceId, user_id: u.user.id, rating, comment }, { onConflict: "resource_id,user_id" as never });
+    if (!u.user) { setBusy(false); return; }
+    await supabase
+      .from("reviews")
+      .upsert(
+        { resource_id: resourceId, user_id: u.user.id, rating, comment },
+        { onConflict: "resource_id,user_id" as never },
+      );
     setBusy(false);
+    setComment("");
     qc.invalidateQueries({ queryKey: ["reviews", resourceId] });
+    toast.success("Review submitted!");
   }
 
   return (
-    <div className="mt-4 rounded-xl border border-border p-4">
+    <div className="mt-6 rounded-xl border border-border p-4">
+      <p className="text-sm font-medium mb-3">Write a review</p>
+      <div className="flex gap-1 mb-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <button key={i} onClick={() => setRating(i + 1)}>
+            <Star className={`h-5 w-5 transition-colors ${i < rating ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground hover:text-yellow-400"}`} />
+          </button>
+        ))}
+      </div>
       <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Share your thoughts…" />
-      <Button onClick={submit} disabled={busy} className="mt-3 rounded-full">Submit</Button>
+      <Button onClick={submit} disabled={busy} className="mt-3 rounded-full">
+        {busy ? "Submitting…" : "Submit Review"}
+      </Button>
     </div>
   );
 }
