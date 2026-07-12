@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 
+import { Particles } from "@/components/ui/Particles";
+
 export const Route = createFileRoute('/resources/')({
   head: () => ({
     meta: [
@@ -130,13 +132,34 @@ function ResourcesPage() {
       <Header />
 
       <main className="flex-1">
-        <div className="container mx-auto py-16 px-6">
-          <div className="mb-12 text-center">
-            <h1 className="text-4xl md:text-5xl font-semibold tracking-tighter">Resource Library</h1>
-            <p className="text-muted-foreground mt-3 max-w-xl mx-auto">
+        <div className="relative w-full h-[350px] md:h-[450px] flex items-center justify-center overflow-hidden border-b border-border">
+          <div className="absolute inset-0 z-0 bg-background">
+            <Particles
+              particleColors={["#ffffff", "#6366f1", "#a855f7"]}
+              particleCount={150}
+              particleSpread={10}
+              speed={0.1}
+              particleBaseSize={100}
+              moveParticlesOnHover={true}
+              alphaParticles={false}
+              disableRotation={false}
+            />
+          </div>
+          
+          {/* Overlay to ensure text readability */}
+          <div className="absolute inset-0 z-[5] bg-gradient-to-b from-background/40 via-background/10 to-background/90" />
+          
+          <div className="relative z-10 text-center px-6 mt-16">
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tighter drop-shadow-md">
+              Resource Library
+            </h1>
+            <p className="text-muted-foreground mt-4 max-w-xl mx-auto text-lg">
               Premium courses and materials. Purchase once, access forever.
             </p>
           </div>
+        </div>
+
+        <div className="container mx-auto py-16 px-6">
 
           {loadingResources ? (
             <div className="flex justify-center items-center py-20">
