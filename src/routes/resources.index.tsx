@@ -136,11 +136,11 @@ function ResourcesPage() {
           <div className="absolute inset-0 z-0 bg-background">
             <Particles
               particleColors={["#ffffff", "#6366f1", "#a855f7"]}
-              particleCount={150}
+              particleCount={50}
               particleSpread={10}
-              speed={0.1}
+              speed={0.05}
               particleBaseSize={100}
-              moveParticlesOnHover={true}
+              moveParticlesOnHover={false}
               alphaParticles={false}
               disableRotation={false}
             />
