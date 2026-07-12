@@ -106,9 +106,16 @@ function Dashboard() {
               ))}
             </div>
           ) : (
-            <p className="mt-3 text-sm text-muted-foreground">
-              No purchases yet. <Link to="/resources" className="underline hover:text-foreground">Browse resources →</Link>
-            </p>
+            <div className="mt-4 rounded-2xl border border-dashed border-border p-8 text-center bg-surface/50">
+              <p className="text-muted-foreground mb-4">
+                You haven't bought anything yet.
+              </p>
+              <Link to="/resources">
+                <Button className="rounded-full">
+                  See all courses
+                </Button>
+              </Link>
+            </div>
           )}
         </section>
       </main>
