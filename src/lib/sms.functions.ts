@@ -14,15 +14,15 @@ const BIRD_SMS_URL = "https://eu1.platform.bird.com/v1/sms/messages";
  */
 export const sendSmsOtp = createServerFn({ method: "POST" })
   .inputValidator(
-    (data: { to: string; code: string; ttl: string }) =>
+    (data: { to: string; code: string; ttl: number }) =>
       z
         .object({
           /** E.164 phone number, e.g. "+919876543210" */
           to: z.string().regex(/^\+[1-9]\d{6,14}$/, "Phone must be in E.164 format, e.g. +919876543210"),
           /** The numeric OTP code to embed in the message */
           code: z.string().min(4).max(10),
-          /** Human-readable expiry shown in the SMS, e.g. "10 minutes" */
-          ttl: z.string().min(1).max(50),
+          /** Expiry in whole minutes shown in the SMS (integer 1–999, per Bird API) */
+          ttl: z.number().int().min(1).max(999),
         })
         .parse(data),
   )

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createHash, randomInt } from "crypto";
 
 const BIRD_SMS_URL = "https://eu1.platform.bird.com/v1/sms/messages";
-const OTP_TTL_MINUTES = 10;
+const OTP_TTL_MINUTES = 10; // Bird template requires ttl as integer 1–999
 
 function hashOtp(code: string): string {
   return createHash("sha256").update(code).digest("hex");
@@ -63,7 +63,7 @@ export const sendPhoneOtp = createServerFn({ method: "POST" })
           name: "bird_otp_verification_ttl",
           parameters: {
             code,
-            ttl: `${OTP_TTL_MINUTES} minutes`,
+            ttl: OTP_TTL_MINUTES, // integer minutes, per Bird API requirement
           },
         },
       }),
