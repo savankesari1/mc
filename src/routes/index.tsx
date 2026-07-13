@@ -4,7 +4,7 @@ import { ArrowRight, Sparkles, Shield, Download, PlayCircle, Code, Terminal, Zap
 
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
-import DotField from "@/components/ui/DotField";
+import FloatingLines from "@/components/ui/FloatingLines";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -101,20 +101,18 @@ function Home() {
       <main className="overflow-x-hidden">
         {/* Hero Section */}
         <section className="relative flex min-h-[100svh] items-center justify-center overflow-hidden pt-16 border-b border-border">
-          {/* DotField Interactive Background */}
+          {/* FloatingLines Interactive Background */}
           <div className="absolute inset-0 z-0">
-            <DotField
-              dotRadius={3.5}
-              dotSpacing={7}
-              bulgeStrength={98}
-              glowRadius={240}
-              sparkle={false}
-              waveAmplitude={0}
-              cursorRadius={650}
-              cursorForce={0.14}
-              gradientFrom="rgba(255, 255, 255, 0.55)"
-              gradientTo="rgba(255, 255, 255, 0.18)"
-              glowColor="#0d0b14"
+            <FloatingLines
+              enabledWaves={['top', 'middle', 'bottom']}
+              lineCount={5}
+              lineDistance={4.5}
+              bendRadius={4.5}
+              bendStrength={-0.5}
+              interactive={true}
+              parallax={true}
+              animationSpeed={1}
+              mixBlendMode="screen"
             />
           </div>
 
