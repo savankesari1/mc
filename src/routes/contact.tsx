@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
+import { FloatingPaths } from "@/components/ui/background-paths";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -57,9 +58,18 @@ function ContactPage() {
   }
 
   return (
-    <>
-      <Header />
-      <main className="mx-auto max-w-5xl px-6 pt-32 pb-24 min-h-screen">
+    <div className="relative min-h-screen bg-background overflow-hidden">
+      <div className="absolute inset-0 z-0">
+        <FloatingPaths position={1} />
+        <FloatingPaths position={-1} />
+      </div>
+      
+      {/* Gradient overlay to ensure text is readable over the lines */}
+      <div className="absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-background/60 to-background/95 pointer-events-none" />
+
+      <div className="relative z-10">
+        <Header />
+        <main className="mx-auto max-w-5xl px-6 pt-32 pb-24 min-h-screen">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Contact</p>
           <h1 className="mt-3 text-5xl font-semibold tracking-tighter">Say hello.</h1>
@@ -88,9 +98,10 @@ function ContactPage() {
             <Button type="submit" disabled={busy} className="rounded-full">{busy ? "Sending…" : "Send message"}</Button>
           </form>
         </div>
-      </main>
-      <Footer />
-    </>
+        </main>
+        <Footer />
+      </div>
+    </div>
   );
 }
 
