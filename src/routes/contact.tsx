@@ -1,11 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState } from "react";
 import { z } from "zod";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Mail, Phone, MapPin } from "lucide-react";
 
-const FluidGlass = lazy(() => import("@/components/ui/FluidGlass"));
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { FloatingPaths } from "@/components/ui/background-paths";
@@ -87,7 +86,7 @@ function ContactPage() {
             <ContactCard icon={MapPin} label="Location" value="Mahadevi Computers & Education Center" />
           </div>
 
-          <form onSubmit={submit} className="lg:col-span-3 space-y-4 rounded-2xl border border-border bg-surface p-6">
+          <form onSubmit={submit} className="lg:col-span-3 space-y-4 rounded-2xl border border-border/40 bg-surface/30 backdrop-blur-xl p-8 shadow-xl transition-all duration-300 hover:bg-surface/50">
             <div className="grid gap-4 sm:grid-cols-2">
               <div><Label>Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="mt-1.5" maxLength={100} required /></div>
               <div><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="mt-1.5" maxLength={255} required /></div>
@@ -108,34 +107,13 @@ function ContactPage() {
 }
 
 function ContactCard({ icon: Icon, label, value }: { icon: typeof Mail; label: string; value: string }) {
-  const [isClient, setIsClient] = useState(false);
-  useEffect(() => setIsClient(true), []);
-
   return (
-    <div className="relative rounded-2xl border border-border/40 bg-surface/30 p-6 shadow-xl transition-all duration-300 hover:bg-surface/50 hover:shadow-2xl overflow-hidden min-h-[160px] flex flex-col justify-end">
-      {isClient && (
-        <div className="absolute inset-0 z-0 pointer-events-auto">
-          <Suspense fallback={null}>
-            <FluidGlass 
-              mode="lens"
-              lensProps={{
-                scale: 0.25,
-                ior: 1.15,
-                thickness: 5,
-                chromaticAberration: 0.1,
-                anisotropy: 0.01  
-              }}
-            />
-          </Suspense>
-        </div>
-      )}
-      <div className="relative z-10 flex flex-col items-start pointer-events-none">
-        <div className="h-10 w-10 rounded-xl bg-accent/10 grid place-items-center backdrop-blur-md mb-2">
-          <Icon className="h-5 w-5 text-accent" />
-        </div>
-        <div className="mt-2 text-xs font-mono uppercase tracking-widest text-muted-foreground">{label}</div>
-        <div className="mt-1.5 text-base font-medium">{value}</div>
+    <div className="rounded-2xl border border-border/40 bg-surface/30 backdrop-blur-xl p-6 shadow-xl transition-all duration-300 hover:bg-surface/50 hover:shadow-2xl">
+      <div className="h-10 w-10 rounded-xl bg-accent/10 grid place-items-center backdrop-blur-md">
+        <Icon className="h-5 w-5 text-accent" />
       </div>
+      <div className="mt-5 text-xs font-mono uppercase tracking-widest text-muted-foreground">{label}</div>
+      <div className="mt-1.5 text-base font-medium">{value}</div>
     </div>
   );
 }
