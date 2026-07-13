@@ -104,7 +104,7 @@ function Home() {
           {/* DotField Interactive Background */}
           <div className="absolute inset-0 z-0">
             <DotField
-              dotRadius={1.5}
+              dotRadius={3.5}
               dotSpacing={7}
               bulgeStrength={98}
               glowRadius={240}
@@ -112,8 +112,8 @@ function Home() {
               waveAmplitude={0}
               cursorRadius={650}
               cursorForce={0.14}
-              gradientFrom="rgba(99, 102, 241, 0.40)"
-              gradientTo="rgba(168, 85, 247, 0.28)"
+              gradientFrom="rgba(255, 255, 255, 0.55)"
+              gradientTo="rgba(255, 255, 255, 0.18)"
               glowColor="#0d0b14"
             />
           </div>

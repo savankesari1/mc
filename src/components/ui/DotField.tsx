@@ -4,7 +4,7 @@ import './DotField.css';
 const TWO_PI = Math.PI * 2;
 
 const DotField = memo(({
-  dotRadius = 1.5,
+  dotRadius = 9,
   dotSpacing = 14,
   cursorRadius = 500,
   cursorForce = 0.1,
@@ -13,8 +13,8 @@ const DotField = memo(({
   glowRadius = 160,
   sparkle = false,
   waveAmplitude = 0,
-  gradientFrom = 'rgba(168, 85, 247, 0.35)',
-  gradientTo = 'rgba(180, 151, 207, 0.25)',
+  gradientFrom = 'rgba(255, 255, 255, 1)',
+  gradientTo = 'rgba(255, 255, 255, 0.25)',
   glowColor = '#120F17',
   ...rest
 }: {
@@ -235,7 +235,7 @@ const DotField = memo(({
       window.removeEventListener('resize', resize);
       window.removeEventListener('mousemove', onMouseMove);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
