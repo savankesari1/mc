@@ -70,8 +70,8 @@ function ContactPage() {
 
         <div className="mt-14 grid gap-10 lg:grid-cols-5">
           <div className="lg:col-span-2 space-y-6">
-            <ContactCard icon={Mail} label="Email" value="hello@mahadevi.example" />
-            <ContactCard icon={Phone} label="Phone" value="+91 00000 00000" />
+            <ContactCard icon={Mail} label="Email" value="mahadevicomputers@gmail.com" />
+            <ContactCard icon={Phone} label="Phone" value="+91 91645 54716" />
             <ContactCard icon={MapPin} label="Location" value="Mahadevi Computers & Education Center" />
           </div>
 
