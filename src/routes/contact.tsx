@@ -86,7 +86,7 @@ function ContactPage() {
             <ContactCard icon={MapPin} label="Location" value="Mahadevi Computers & Education Center" />
           </div>
 
-          <form onSubmit={submit} className="lg:col-span-3 space-y-4 rounded-2xl border border-border/40 bg-surface/30 backdrop-blur-xl p-8 shadow-xl transition-all duration-300 hover:bg-surface/50">
+          <form onSubmit={submit} className="lg:col-span-3 space-y-4 rounded-[2rem] border border-white/20 dark:border-white/10 bg-white/5 dark:bg-black/10 backdrop-blur-3xl p-8 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] transition-all duration-500 hover:bg-white/10 dark:hover:bg-white/5 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.2)]">
             <div className="grid gap-4 sm:grid-cols-2">
               <div><Label>Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="mt-1.5" maxLength={100} required /></div>
               <div><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="mt-1.5" maxLength={255} required /></div>
@@ -108,11 +108,11 @@ function ContactPage() {
 
 function ContactCard({ icon: Icon, label, value }: { icon: typeof Mail; label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-border/40 bg-surface/30 backdrop-blur-xl p-6 shadow-xl transition-all duration-300 hover:bg-surface/50 hover:shadow-2xl">
-      <div className="h-10 w-10 rounded-xl bg-accent/10 grid place-items-center backdrop-blur-md">
+    <div className="rounded-[2rem] border border-white/20 dark:border-white/10 bg-white/5 dark:bg-black/10 backdrop-blur-3xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] transition-all duration-500 hover:bg-white/10 dark:hover:bg-white/5 hover:-translate-y-1 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.2)] group">
+      <div className="h-12 w-12 rounded-2xl bg-white/10 dark:bg-white/5 border border-white/20 grid place-items-center backdrop-blur-md transition-transform duration-500 group-hover:scale-110">
         <Icon className="h-5 w-5 text-accent" />
       </div>
-      <div className="mt-5 text-xs font-mono uppercase tracking-widest text-muted-foreground">{label}</div>
+      <div className="mt-6 text-xs font-mono uppercase tracking-widest text-muted-foreground/80">{label}</div>
       <div className="mt-1.5 text-base font-medium">{value}</div>
     </div>
   );
