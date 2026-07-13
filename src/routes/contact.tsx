@@ -96,12 +96,12 @@ function ContactPage() {
 
 function ContactCard({ icon: Icon, label, value }: { icon: typeof Mail; label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-border p-5">
-      <div className="h-9 w-9 rounded-lg bg-subtle grid place-items-center">
-        <Icon className="h-4 w-4 text-accent" />
+    <div className="rounded-2xl border border-border/40 bg-surface/30 backdrop-blur-xl p-6 shadow-xl transition-all duration-300 hover:bg-surface/50 hover:shadow-2xl">
+      <div className="h-10 w-10 rounded-xl bg-accent/10 grid place-items-center backdrop-blur-md">
+        <Icon className="h-5 w-5 text-accent" />
       </div>
-      <div className="mt-4 text-xs font-mono uppercase tracking-widest text-muted-foreground">{label}</div>
-      <div className="mt-1 text-sm">{value}</div>
+      <div className="mt-5 text-xs font-mono uppercase tracking-widest text-muted-foreground">{label}</div>
+      <div className="mt-1.5 text-base font-medium">{value}</div>
     </div>
   );
 }
