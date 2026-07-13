@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { z } from "zod";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Mail, Phone, MapPin } from "lucide-react";
+
+const FluidGlass = lazy(() => import("@/components/ui/FluidGlass"));
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { FloatingPaths } from "@/components/ui/background-paths";
@@ -106,13 +108,34 @@ function ContactPage() {
 }
 
 function ContactCard({ icon: Icon, label, value }: { icon: typeof Mail; label: string; value: string }) {
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => setIsClient(true), []);
+
   return (
-    <div className="rounded-2xl border border-border/40 bg-surface/30 backdrop-blur-xl p-6 shadow-xl transition-all duration-300 hover:bg-surface/50 hover:shadow-2xl">
-      <div className="h-10 w-10 rounded-xl bg-accent/10 grid place-items-center backdrop-blur-md">
-        <Icon className="h-5 w-5 text-accent" />
+    <div className="relative rounded-2xl border border-border/40 bg-surface/30 p-6 shadow-xl transition-all duration-300 hover:bg-surface/50 hover:shadow-2xl overflow-hidden min-h-[160px] flex flex-col justify-end">
+      {isClient && (
+        <div className="absolute inset-0 z-0 pointer-events-auto">
+          <Suspense fallback={null}>
+            <FluidGlass 
+              mode="lens"
+              lensProps={{
+                scale: 0.25,
+                ior: 1.15,
+                thickness: 5,
+                chromaticAberration: 0.1,
+                anisotropy: 0.01  
+              }}
+            />
+          </Suspense>
+        </div>
+      )}
+      <div className="relative z-10 flex flex-col items-start pointer-events-none">
+        <div className="h-10 w-10 rounded-xl bg-accent/10 grid place-items-center backdrop-blur-md mb-2">
+          <Icon className="h-5 w-5 text-accent" />
+        </div>
+        <div className="mt-2 text-xs font-mono uppercase tracking-widest text-muted-foreground">{label}</div>
+        <div className="mt-1.5 text-base font-medium">{value}</div>
       </div>
-      <div className="mt-5 text-xs font-mono uppercase tracking-widest text-muted-foreground">{label}</div>
-      <div className="mt-1.5 text-base font-medium">{value}</div>
     </div>
   );
 }
