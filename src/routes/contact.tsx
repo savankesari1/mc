@@ -7,6 +7,7 @@ import { Mail, Phone, MapPin } from "lucide-react";
 
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
+import GlassSurface from "@/components/ui/GlassSurface";
 import { FloatingPaths } from "@/components/ui/background-paths";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -86,18 +87,20 @@ function ContactPage() {
             <ContactCard icon={MapPin} label="Location" value="Mahadevi Computers & Education Center" />
           </div>
 
-          <form onSubmit={submit} className="lg:col-span-3 space-y-4 rounded-[2rem] border border-white/20 dark:border-white/10 bg-white/5 dark:bg-black/10 backdrop-blur-3xl p-8 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] transition-all duration-500 hover:bg-white/10 dark:hover:bg-white/5 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.2)]">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div><Label>Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="mt-1.5" maxLength={100} required /></div>
-              <div><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="mt-1.5" maxLength={255} required /></div>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div><Label>Phone (optional)</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="mt-1.5" maxLength={20} /></div>
-              <div><Label>Subject (optional)</Label><Input value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} className="mt-1.5" maxLength={200} /></div>
-            </div>
-            <div><Label>Message</Label><Textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className="mt-1.5 min-h-32" maxLength={4000} required /></div>
-            <Button type="submit" disabled={busy} className="rounded-full">{busy ? "Sending…" : "Send message"}</Button>
-          </form>
+          <GlassSurface width="100%" height="100%" borderRadius={32} className="lg:col-span-3 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] transition-all duration-500 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.2)]" opacity={0.8}>
+            <form onSubmit={submit} className="w-full space-y-4 p-8">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div><Label>Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="mt-1.5" maxLength={100} required /></div>
+                <div><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="mt-1.5" maxLength={255} required /></div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div><Label>Phone (optional)</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="mt-1.5" maxLength={20} /></div>
+                <div><Label>Subject (optional)</Label><Input value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} className="mt-1.5" maxLength={200} /></div>
+              </div>
+              <div><Label>Message</Label><Textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className="mt-1.5 min-h-32" maxLength={4000} required /></div>
+              <Button type="submit" disabled={busy} className="rounded-full">{busy ? "Sending…" : "Send message"}</Button>
+            </form>
+          </GlassSurface>
         </div>
         </main>
         <Footer />
@@ -108,12 +111,14 @@ function ContactPage() {
 
 function ContactCard({ icon: Icon, label, value }: { icon: typeof Mail; label: string; value: string }) {
   return (
-    <div className="rounded-[2rem] border border-white/20 dark:border-white/10 bg-white/5 dark:bg-black/10 backdrop-blur-3xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] transition-all duration-500 hover:bg-white/10 dark:hover:bg-white/5 hover:-translate-y-1 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.2)] group">
-      <div className="h-12 w-12 rounded-2xl bg-white/10 dark:bg-white/5 border border-white/20 grid place-items-center backdrop-blur-md transition-transform duration-500 group-hover:scale-110">
-        <Icon className="h-5 w-5 text-accent" />
+    <GlassSurface width="100%" height="100%" borderRadius={32} className="shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.2)] group" opacity={0.8} displace={0} distortionScale={-180}>
+      <div className="flex flex-col p-6 w-full h-full justify-center">
+        <div className="h-12 w-12 rounded-2xl bg-white/10 dark:bg-white/5 border border-white/20 grid place-items-center backdrop-blur-md transition-transform duration-500 group-hover:scale-110">
+          <Icon className="h-5 w-5 text-accent" />
+        </div>
+        <div className="mt-6 text-xs font-mono uppercase tracking-widest text-muted-foreground/80">{label}</div>
+        <div className="mt-1.5 text-base font-medium">{value}</div>
       </div>
-      <div className="mt-6 text-xs font-mono uppercase tracking-widest text-muted-foreground/80">{label}</div>
-      <div className="mt-1.5 text-base font-medium">{value}</div>
-    </div>
+    </GlassSurface>
   );
 }
