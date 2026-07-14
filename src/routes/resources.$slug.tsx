@@ -39,7 +39,7 @@ export const Route = createFileRoute("/resources/$slug")({
 
 function ResourceDetail() {
   const { slug } = Route.useParams();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
 
