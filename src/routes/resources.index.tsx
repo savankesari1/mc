@@ -14,7 +14,7 @@ import { Particles } from "@/components/ui/Particles";
 export const Route = createFileRoute('/resources/')({
   head: () => ({
     meta: [
-      { title: "Resources — Payal Education Center Computers" },
+      { title: "Resources — Payal Education Society Computers" },
       { name: "description", content: "Browse our premium library of computer training, programming, and competitive exam resources." },
     ],
   }),

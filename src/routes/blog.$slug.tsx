@@ -8,8 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/blog/$slug")({
   head: ({ params }) => ({
     meta: [
-      { title: `${params.slug} — Payal Education Center Blog` },
-      { name: "description", content: "Read on Payal Education Center Computers blog." },
+      { title: `${params.slug} — Payal Education Society Blog` },
+      { name: "description", content: "Read on Payal Education Society Computers blog." },
     ],
   }),
   component: BlogPost,

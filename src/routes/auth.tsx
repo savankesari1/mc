@@ -24,8 +24,8 @@ export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Sign in — Payal Education Center Computers" },
-      { name: "description", content: "Sign in or create your Payal Education Center Computers account." },
+      { title: "Sign in — Payal Education Society Computers" },
+      { name: "description", content: "Sign in or create your Payal Education Society Computers account." },
     ],
   }),
   component: AuthPage,

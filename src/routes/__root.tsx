@@ -80,15 +80,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Payal Education Center Computers & Education Center — Premium learning resources" },
+      { title: "Payal Education Society Computers & Education Center — Premium learning resources" },
       {
         name: "description",
         content:
-          "Premium educational resources for computer training, programming, competitive exams, graphic design, and more. Curated by Subhash at Payal Education Center Computers & Education Center.",
+          "Premium educational resources for computer training, programming, competitive exams, graphic design, and more. Curated by Subhash at Payal Education Society Computers & Education Center.",
       },
-      { name: "author", content: "Payal Education Center Computers & Education Center" },
+      { name: "author", content: "Payal Education Society Computers & Education Center" },
       { name: "theme-color", content: "#0a0a0a" },
-      { property: "og:title", content: "Payal Education Center Computers & Education Center" },
+      { property: "og:title", content: "Payal Education Society Computers & Education Center" },
       {
         property: "og:description",
         content:

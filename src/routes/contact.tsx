@@ -25,8 +25,8 @@ const schema = z.object({
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact — Payal Education Center Computers" },
-      { name: "description", content: "Get in touch with Payal Education Center Computers & Education Center." },
+      { title: "Contact — Payal Education Society Computers" },
+      { name: "description", content: "Get in touch with Payal Education Society Computers & Education Center." },
     ],
   }),
   component: ContactPage,
@@ -81,9 +81,9 @@ function ContactPage() {
 
         <div className="mt-14 grid gap-10 lg:grid-cols-5">
           <div className="lg:col-span-2 space-y-6">
-            <ContactCard icon={Mail} label="Email" value="payal education centercomputers@gmail.com" />
+            <ContactCard icon={Mail} label="Email" value="payal education societycomputers@gmail.com" />
             <ContactCard icon={Phone} label="Phone" value="+91 91645 54716" />
-            <ContactCard icon={MapPin} label="Location" value="Payal Education Center Computers & Education Center" />
+            <ContactCard icon={MapPin} label="Location" value="Payal Education Society Computers & Education Center" />
           </div>
 
           <form onSubmit={submit} className="lg:col-span-3 space-y-4 rounded-[2rem] border border-white/20 dark:border-white/10 bg-white/5 dark:bg-black/10 backdrop-blur-3xl p-8 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] transition-all duration-500 hover:bg-white/10 dark:hover:bg-white/5 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.2)]">
