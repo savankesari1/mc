@@ -30,8 +30,8 @@ declare global {
 export const Route = createFileRoute("/resources/$slug")({
   head: ({ params }) => ({
     meta: [
-      { title: `${params.slug} — Mahadevi Computers` },
-      { name: "description", content: "Premium learning resource on Mahadevi Computers." },
+      { title: `${params.slug} — Payal Education Center Computers` },
+      { name: "description", content: "Premium learning resource on Payal Education Center Computers." },
     ],
   }),
   component: ResourceDetail,
@@ -162,7 +162,7 @@ function ResourceDetail() {
         key: order.keyId,
         amount: order.amount,
         currency: order.currency,
-        name: "Mahadevi Computers",
+        name: "Payal Education Center Computers",
         description: order.resourceTitle,
         order_id: order.orderId,
         theme: { color: "#6366f1" },

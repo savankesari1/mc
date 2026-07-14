@@ -36,10 +36,8 @@ export function Header() {
       <div className="mx-auto max-w-6xl px-6 pt-4">
         <div className="glass rounded-full flex items-center justify-between px-5 py-2.5">
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="h-7 w-7 rounded-lg bg-foreground text-background grid place-items-center font-mono text-xs font-semibold">
-              M
-            </div>
-            <span className="text-sm font-medium tracking-tight">Mahadevi</span>
+            <img src="/logo.png" alt="Payal Education Center Logo" className="h-8 w-auto object-contain" />
+            <span className="text-sm font-medium tracking-tight">Payal Education Center</span>
           </Link>
           <nav className="hidden md:flex items-center gap-1">
             {nav.map((item) => (

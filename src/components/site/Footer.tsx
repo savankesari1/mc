@@ -6,10 +6,8 @@ export function Footer() {
       <div className="mx-auto max-w-6xl px-6 py-16 grid gap-12 md:grid-cols-4">
         <div className="md:col-span-2">
           <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-lg bg-foreground text-background grid place-items-center font-mono text-xs font-semibold">
-              M
-            </div>
-            <span className="text-sm font-medium">Mahadevi Computers</span>
+            <img src="/logo.png" alt="Payal Education Center Logo" className="h-8 w-auto object-contain grayscale opacity-75" />
+            <span className="text-sm font-medium">Payal Education Center Computers</span>
           </div>
           <p className="mt-4 max-w-sm text-sm text-muted-foreground leading-relaxed">
             Premium educational resources for computer training, programming,
@@ -39,7 +37,7 @@ export function Footer() {
       <div className="border-t border-border">
         <div className="mx-auto max-w-6xl px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-3">
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} Mahadevi Computers & Education Center. All rights reserved.
+            © {new Date().getFullYear()} Payal Education Center Computers & Education Center. All rights reserved.
           </p>
           <p className="text-xs text-muted-foreground font-mono">Owned by Subhash</p>
         </div>

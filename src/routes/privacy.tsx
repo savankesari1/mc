@@ -4,7 +4,7 @@ import { Footer } from "@/components/site/Footer";
 
 export const Route = createFileRoute("/privacy")({
   head: () => ({
-    meta: [{ title: "Privacy — Mahadevi Computers" }, { name: "description", content: "Privacy policy." }],
+    meta: [{ title: "Privacy — Payal Education Center Computers" }, { name: "description", content: "Privacy policy." }],
   }),
   component: () => (
     <>

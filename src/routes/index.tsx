@@ -12,13 +12,13 @@ const FloatingLines = lazy(() => import("@/components/ui/FloatingLines"));
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Mahadevi Computers — Premium learning resources" },
+      { title: "Payal Education Center Computers — Premium learning resources" },
       {
         name: "description",
         content:
           "Curated, premium educational resources for computer training, programming, competitive exams, and more. Learn at your own pace.",
       },
-      { property: "og:title", content: "Mahadevi Computers — Premium learning resources" },
+      { property: "og:title", content: "Payal Education Center Computers — Premium learning resources" },
       {
         property: "og:description",
         content:
@@ -139,7 +139,7 @@ function Home() {
               className="inline-flex items-center gap-1.5 rounded-full border border-border/50 bg-surface/30 px-3 py-1 text-[11px] sm:text-xs text-foreground/80 backdrop-blur-md shadow-xl"
             >
               <Sparkles className="h-3 w-3 text-indigo-400" />
-              <span className="font-medium tracking-wide">Introducing Mahadevi — premium learning, simplified</span>
+              <span className="font-medium tracking-wide">Introducing Payal Education Center — premium learning, simplified</span>
             </motion.div>
 
             {/* Headline */}
@@ -204,7 +204,7 @@ function Home() {
 
         {/* Categories marquee */}
         <section className="border-b border-border py-5 sm:py-7 overflow-hidden bg-background relative z-20">
-          <div className="flex gap-10 sm:gap-12 whitespace-nowrap animate-[marquee_50s_linear_infinite]">
+          <div className="flex gap-10 sm:gap-12 whitespace-nowrap animate-[marquee_20s_linear_infinite]">
             {[...categories, ...categories, ...categories].map((c, i) => (
               <span
                 key={i}

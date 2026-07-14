@@ -17,7 +17,7 @@ import { getResourceDownloadUrl } from "@/lib/payments.functions";
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Dashboard — Mahadevi Computers" },
+      { title: "Dashboard — Payal Education Center Computers" },
       { name: "description", content: "Your resources, purchases, and downloads." },
     ],
   }),

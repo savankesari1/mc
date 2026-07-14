@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useUserRole } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Admin — Mahadevi Computers" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Admin — Payal Education Center Computers" }, { name: "robots", content: "noindex" }] }),
   component: AdminPage,
 });
 
