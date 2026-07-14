@@ -49,6 +49,12 @@ function ResourceDetail() {
   const [documentType, setDocumentType] = useState<"pdf" | "file" | "external" | null>(null);
   const [thumbnailError, setThumbnailError] = useState(false);
 
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate({ to: "/auth", search: { next: `/resources/${slug}` }, replace: true });
+    }
+  }, [user, authLoading, navigate, slug]);
+
   const { data: resource, isLoading } = useQuery({
     queryKey: ["resource", slug],
     queryFn: async () => {
@@ -236,7 +242,7 @@ function ResourceDetail() {
 
   const canAccess = resource && (resource.is_free || purchase);
 
-  if (isLoading) {
+  if (isLoading || authLoading || !user) {
     return (
       <>
         <Header />
