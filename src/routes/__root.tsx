@@ -95,11 +95,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Premium educational resources for computer training, programming, and competitive exams.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: "/logo.png" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/logo.png", type: "image/png" },
     ],
 
     scripts: [
