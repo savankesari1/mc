@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
+import ProfileCard from "@/components/ProfileCard";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -20,6 +21,22 @@ export const Route = createFileRoute("/about")({
           curated by Subhash. Every video, PDF, and assignment on this platform was chosen because it
           teaches something worth learning.
         </p>
+        <div className="mt-16 flex justify-center">
+          <ProfileCard
+            name="Subhash"
+            title="Curator & Educator"
+            handle="subhash"
+            status="Online"
+            contactText="Contact Me"
+            avatarUrl="https://github.com/shadcn.png"
+            showUserInfo
+            enableTilt={true}
+            enableMobileTilt
+            onContactClick={() => console.log('Contact clicked')}
+            behindGlowEnabled
+            innerGradient="linear-gradient(145deg,#60496e8c 0%,#71C4FF44 100%)"
+          />
+        </div>
       </main>
       <Footer />
     </>
