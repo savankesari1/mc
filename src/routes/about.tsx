@@ -28,7 +28,7 @@ export const Route = createFileRoute("/about")({
             handle="subhash"
             status="Online"
             contactText="Contact Me"
-            avatarUrl="https://github.com/shadcn.png"
+            avatarUrl="/avatar.png"
             showUserInfo
             enableTilt={true}
             enableMobileTilt

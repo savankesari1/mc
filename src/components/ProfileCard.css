@@ -68,17 +68,19 @@
   animation: glow-bg 12s linear infinite;
   box-shadow: rgba(0, 0, 0, 0.8) calc((var(--pointer-from-left) * 10px) - 3px)
     calc((var(--pointer-from-top) * 20px) - 6px) 20px -5px;
-  transition: transform 1s ease;
+  transition: transform 1s ease, filter 1s ease;
   transform: translateZ(0) rotateX(0deg) rotateY(0deg);
   background: rgba(0, 0, 0, 0.9);
   backface-visibility: hidden;
   overflow: hidden;
+  filter: brightness(1);
 }
 
 .pc-card:hover,
 .pc-card.active {
-  transition: none;
+  transition: filter 0.3s ease;
   transform: translateZ(0) rotateX(var(--rotate-y)) rotateY(var(--rotate-x));
+  filter: brightness(0.7);
 }
 
 .pc-card-shell.entering .pc-card {
