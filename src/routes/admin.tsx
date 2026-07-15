@@ -206,7 +206,7 @@ function ResourceDialog({ row, categories, onDone }: { row?: Record<string, unkn
       <DialogTrigger asChild>
         {row ? <Button variant="ghost" size="icon"><Edit className="h-4 w-4" /></Button> : <Button size="sm" className="rounded-full"><Plus className="h-4 w-4 mr-1" />New</Button>}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-lenis-prevent>
         <DialogHeader><DialogTitle>{row ? "Edit resource" : "New resource"}</DialogTitle></DialogHeader>
         <div className="space-y-3">
           <div><Label>Title</Label><Input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} /></div>
@@ -381,7 +381,7 @@ function BlogAdmin() {
       <div className="flex justify-end">
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild><Button className="rounded-full"><Plus className="h-4 w-4 mr-1" />New post</Button></DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-lenis-prevent>
             <DialogHeader><DialogTitle>New blog post</DialogTitle></DialogHeader>
             <div className="space-y-3">
               <div><Label>Title</Label><Input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} /></div>
