@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Trash2, Plus, Edit } from "lucide-react";
+import { Trash2, Plus, Edit, Upload, Image as ImageIcon, File as FileIcon, Loader2 } from "lucide-react";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { Button } from "@/components/ui/button";
@@ -231,37 +231,67 @@ function ResourceDialog({ row, categories, onDone }: { row?: Record<string, unkn
 
           <div>
             <Label>Thumbnail image</Label>
-            <div className="mt-1.5 flex items-center gap-3">
-              {f.thumbnail_url && (
-                <img src={f.thumbnail_url} alt="" className="h-12 w-16 rounded object-cover border border-border" />
-              )}
-              <Input
-                type="file"
-                accept="image/*"
-                disabled={uploadingThumb}
-                onChange={(e) => e.target.files?.[0] && handleThumbUpload(e.target.files[0])}
-              />
-              {uploadingThumb && <span className="text-xs text-muted-foreground shrink-0">Uploading…</span>}
+            <div className="mt-2">
+              <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${uploadingThumb ? 'bg-muted/50 border-muted' : 'border-border bg-background hover:bg-muted/50'}`}>
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  {uploadingThumb ? (
+                    <Loader2 className="w-8 h-8 mb-3 text-muted-foreground animate-spin" />
+                  ) : f.thumbnail_url ? (
+                    <img src={f.thumbnail_url} alt="" className="h-16 w-24 rounded object-cover mb-2 border border-border shadow-sm" />
+                  ) : (
+                    <ImageIcon className="w-8 h-8 mb-3 text-muted-foreground opacity-50" />
+                  )}
+                  <p className="text-sm text-muted-foreground">
+                    {uploadingThumb ? "Uploading..." : f.thumbnail_url ? "Click to change thumbnail" : <><span className="font-semibold">Click to upload</span> thumbnail</>}
+                  </p>
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={uploadingThumb}
+                  onChange={(e) => e.target.files?.[0] && handleThumbUpload(e.target.files[0])}
+                />
+              </label>
             </div>
           </div>
 
           <div><Label>External URL (optional — e.g. a YouTube link instead of a file)</Label><Input value={f.external_url} onChange={(e) => setF({ ...f, external_url: e.target.value })} /></div>
 
           <div>
-            <Label>Resource file (PDF, ZIP, etc. — stored privately, served only via signed download link)</Label>
-            <div className="mt-1.5 flex items-center gap-3">
-              <Input
-                type="file"
-                disabled={uploadingFile}
-                onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
-              />
-              {uploadingFile && <span className="text-xs text-muted-foreground shrink-0">Uploading…</span>}
+            <Label>Resource file (PDF, ZIP, etc. — stored privately)</Label>
+            <div className="mt-2">
+              <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${uploadingFile ? 'bg-muted/50 border-muted' : 'border-border bg-background hover:bg-muted/50'}`}>
+                <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
+                  {uploadingFile ? (
+                    <Loader2 className="w-8 h-8 mb-3 text-muted-foreground animate-spin" />
+                  ) : f.file_path ? (
+                    <FileIcon className="w-8 h-8 mb-3 text-primary" />
+                  ) : (
+                    <Upload className="w-8 h-8 mb-3 text-muted-foreground opacity-50" />
+                  )}
+                  
+                  {uploadingFile ? (
+                    <p className="text-sm text-muted-foreground">Uploading file...</p>
+                  ) : f.file_path ? (
+                    <>
+                      <p className="text-sm font-medium text-foreground truncate max-w-full">{f.file_name || "Resource file attached"}</p>
+                      <p className="text-xs text-muted-foreground mt-1">Click to replace file</p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-semibold">Click to upload</span> or drag and drop
+                    </p>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  className="hidden"
+                  disabled={uploadingFile}
+                  onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
+                />
+              </label>
             </div>
-            {f.file_path && (
-              <p className="mt-1.5 text-xs text-muted-foreground font-mono truncate">
-                {f.file_name || f.file_path}
-              </p>
-            )}
           </div>
         </div>
         <DialogFooter><Button onClick={save} disabled={busy || uploadingFile || uploadingThumb}>{busy ? "Saving…" : "Save"}</Button></DialogFooter>
