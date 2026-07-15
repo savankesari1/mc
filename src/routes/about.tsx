@@ -29,7 +29,6 @@ export const Route = createFileRoute("/about")({
             status="Online"
             contactText="Contact Me"
             avatarUrl="/avatar.png"
-            showUserInfo
             enableTilt={true}
             enableMobileTilt
             onContactClick={() => console.log('Contact clicked')}
