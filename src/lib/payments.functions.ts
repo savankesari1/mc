@@ -10,7 +10,7 @@ export const getRazorpayKey = createServerFn({ method: "GET" }).handler(async ()
 /** Creates a Razorpay order for a resource the user is trying to buy. */
 export const createRazorpayOrder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { resourceId: string }) =>
+  .validator((data: { resourceId: string }) =>
     z.object({ resourceId: z.string().uuid() }).parse(data),
   )
   .handler(async ({ data, context }) => {
@@ -102,7 +102,7 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
 /** Verifies Razorpay signature and marks purchase completed. */
 export const verifyRazorpayPayment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: {
+  .validator((data: {
     purchaseId: string;
     razorpay_order_id: string;
     razorpay_payment_id: string;
@@ -146,7 +146,7 @@ export const verifyRazorpayPayment = createServerFn({ method: "POST" })
 /** Returns a short-lived signed URL to view/download a purchased resource file. */
 export const getResourceDownloadUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { resourceId: string }) =>
+  .validator((data: { resourceId: string }) =>
     z.object({ resourceId: z.string().uuid() }).parse(data),
   )
   .handler(async ({ data, context }) => {
