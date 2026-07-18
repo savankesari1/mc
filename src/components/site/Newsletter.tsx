@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { z } from "zod";
+import { emailSchema } from "@/lib/validation";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,7 @@ export function Newsletter() {
     e.preventDefault();
     setBusy(true);
     try {
-      const parsed = z.string().trim().email().max(255).parse(email);
+      const parsed = emailSchema.parse(email);
       const { error } = await supabase
         .from("newsletter_subscribers")
         .insert({ email: parsed });

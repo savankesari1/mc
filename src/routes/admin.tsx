@@ -13,7 +13,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useUserRole } from "@/hooks/use-auth";
-
+import { z } from "zod";
+import { resourceFormSchema, categoryFormSchema, blogPostFormSchema } from "@/lib/validation";
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — Payal Education Society Computers" }, { name: "robots", content: "noindex" }] }),
   component: AdminPage,
@@ -87,7 +88,7 @@ function ResourcesAdmin() {
   async function remove(id: string) {
     if (!confirm("Delete this resource?")) return;
     const { error } = await supabase.from("resources").delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { console.error("[Admin] Delete resource failed:", error); return toast.error("Failed to delete resource."); }
     toast.success("Deleted");
     qc.invalidateQueries({ queryKey: ["admin-resources"] });
   }
@@ -156,7 +157,7 @@ function ResourceDialog({ row, categories, onDone }: { row?: Record<string, unkn
       upsert: true,
     });
     setUploadingFile(false);
-    if (error) return toast.error(`Upload failed: ${error.message}`);
+    if (error) { console.error("[Admin] File upload failed:", error); return toast.error("File upload failed. Please try again."); }
     setF((prev) => ({ ...prev, file_path: path, file_name: file.name }));
     toast.success("File uploaded");
   }
@@ -171,7 +172,7 @@ function ResourceDialog({ row, categories, onDone }: { row?: Record<string, unkn
     });
     if (error) {
       setUploadingThumb(false);
-      return toast.error(`Upload failed: ${error.message}`);
+      return toast.error("Thumbnail upload failed. Please try again.");
     }
     const { data } = supabase.storage.from("resource-thumbnails").getPublicUrl(path);
     setUploadingThumb(false);
@@ -181,24 +182,46 @@ function ResourceDialog({ row, categories, onDone }: { row?: Record<string, unkn
 
   async function save() {
     setBusy(true);
-    const { file_name: _fileName, ...rest } = f;
-    const payload = {
-      ...rest,
-      slug: f.slug || slugify(f.title),
-      category_id: f.category_id || null,
-      thumbnail_url: f.thumbnail_url || null,
-      external_url: f.external_url || null,
-      file_path: f.file_path || null,
-    };
-    const q = row?.id
-      ? supabase.from("resources").update(payload).eq("id", row.id as string)
-      : supabase.from("resources").insert(payload);
-    const { error } = await q;
-    setBusy(false);
-    if (error) return toast.error(error.message);
-    toast.success("Saved");
-    setOpen(false);
-    onDone();
+    try {
+      const { file_name: _fileName, ...rest } = f;
+      const validated = resourceFormSchema.parse({
+        ...rest,
+        slug: f.slug || slugify(f.title),
+        category_id: f.category_id || undefined,
+        thumbnail_url: f.thumbnail_url || undefined,
+        external_url: f.external_url || undefined,
+        file_path: f.file_path || undefined,
+      });
+
+      const payload = {
+        ...validated,
+        category_id: validated.category_id || null,
+        thumbnail_url: validated.thumbnail_url || null,
+        external_url: validated.external_url || null,
+        file_path: validated.file_path || null,
+      };
+
+      const q = row?.id
+        ? supabase.from("resources").update(payload).eq("id", row.id as string)
+        : supabase.from("resources").insert(payload);
+      
+      const { error } = await q;
+      if (error) { console.error("[Admin] Save resource failed:", error); toast.error("Failed to save resource."); }
+      else {
+        toast.success("Saved");
+        setOpen(false);
+        onDone();
+      }
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        toast.error(err.issues[0].message);
+      } else {
+        console.error("[Admin] Unexpected error saving resource:", err);
+        toast.error("An unexpected error occurred.");
+      }
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -311,18 +334,27 @@ function CategoriesAdmin() {
 
   async function add() {
     if (!name.trim()) return;
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-    const { error } = await supabase.from("categories").insert({ name, slug });
-    if (error) return toast.error(error.message);
-    setName("");
-    toast.success("Added");
-    qc.invalidateQueries({ queryKey: ["admin-categories"] });
+    try {
+      const validated = categoryFormSchema.parse({ name });
+      const slug = validated.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+      const { error } = await supabase.from("categories").insert({ name: validated.name, slug });
+      if (error) { console.error("[Admin] Add category failed:", error); toast.error("Failed to add category."); }
+      else {
+        setName("");
+        toast.success("Added");
+        qc.invalidateQueries({ queryKey: ["admin-categories"] });
+      }
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        toast.error(err.issues[0].message);
+      }
+    }
   }
 
   async function remove(id: string) {
     if (!confirm("Delete?")) return;
     const { error } = await supabase.from("categories").delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { console.error("[Admin] Delete category failed:", error); return toast.error("Failed to delete category."); }
     qc.invalidateQueries({ queryKey: ["admin-categories"] });
   }
 
@@ -355,19 +387,37 @@ function BlogAdmin() {
   const [f, setF] = useState({ title: "", slug: "", excerpt: "", content: "", cover_url: "", is_published: true });
 
   async function save() {
-    const payload = {
-      ...f,
-      slug: f.slug || f.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
-      cover_url: f.cover_url || null,
-      published_at: f.is_published ? new Date().toISOString() : null,
-    };
-    const { data: u } = await supabase.auth.getUser();
-    const { error } = await supabase.from("blog_posts").insert({ ...payload, author_id: u.user?.id ?? null });
-    if (error) return toast.error(error.message);
-    toast.success("Post created");
-    setOpen(false);
-    setF({ title: "", slug: "", excerpt: "", content: "", cover_url: "", is_published: true });
-    qc.invalidateQueries({ queryKey: ["admin-blog"] });
+    try {
+      const validated = blogPostFormSchema.parse({
+        ...f,
+        slug: f.slug || f.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
+        cover_url: f.cover_url || undefined,
+        excerpt: f.excerpt || undefined,
+      });
+
+      const payload = {
+        ...validated,
+        cover_url: validated.cover_url || null,
+        excerpt: validated.excerpt || null,
+        published_at: validated.is_published ? new Date().toISOString() : null,
+      };
+      
+      const { data: u } = await supabase.auth.getUser();
+      const { error } = await supabase.from("blog_posts").insert({ ...payload, author_id: u.user?.id ?? null });
+      if (error) { console.error("[Admin] Save blog post failed:", error); return toast.error("Failed to save post."); }
+      
+      toast.success("Post created");
+      setOpen(false);
+      setF({ title: "", slug: "", excerpt: "", content: "", cover_url: "", is_published: true });
+      qc.invalidateQueries({ queryKey: ["admin-blog"] });
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        toast.error(err.issues[0].message);
+      } else {
+        console.error("[Admin] Save blog post error:", err);
+        toast.error("Failed to save post.");
+      }
+    }
   }
 
   async function remove(id: string) {

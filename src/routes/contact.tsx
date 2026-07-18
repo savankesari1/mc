@@ -14,13 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
-const schema = z.object({
-  name: z.string().trim().min(1).max(100),
-  email: z.string().trim().email().max(255),
-  phone: z.string().trim().max(20).optional().or(z.literal("")),
-  subject: z.string().trim().max(200).optional().or(z.literal("")),
-  message: z.string().trim().min(5).max(4000),
-});
+import { contactFormSchema } from "@/lib/validation";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -40,7 +34,7 @@ function ContactPage() {
     e.preventDefault();
     setBusy(true);
     try {
-      const data = schema.parse(form);
+      const data = contactFormSchema.parse(form);
       const { error } = await supabase.from("contact_submissions").insert({
         name: data.name,
         email: data.email,
@@ -52,7 +46,12 @@ function ContactPage() {
       toast.success("Message sent. We'll be in touch.");
       setForm({ name: "", email: "", phone: "", subject: "", message: "" });
     } catch (err) {
-      toast.error(err instanceof z.ZodError ? err.issues[0].message : (err as Error).message);
+      if (err instanceof z.ZodError) {
+        toast.error(err.issues[0].message);
+      } else {
+        console.error("[Contact] Submit failed:", err);
+        toast.error("Failed to send message. Please try again.");
+      }
     } finally {
       setBusy(false);
     }

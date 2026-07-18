@@ -165,7 +165,8 @@ function PurchaseCard({ purchase }: { purchase: PurchaseRow }) {
       const { url } = await getDownload({ data: { resourceId: purchase.resource_id } });
       window.open(url, "_blank");
     } catch (e) {
-      toast.error((e as Error).message);
+      console.error("[Dashboard] Download failed:", e);
+      toast.error("Download failed. Please try again.");
     } finally {
       setBusy(false);
     }

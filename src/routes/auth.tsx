@@ -14,9 +14,7 @@ import { lovable } from "@/integrations/lovable/index";
 // Lazy load DotField so it never runs during SSR
 const DotField = lazy(() => import("@/components/ui/DotField"));
 
-const emailSchema = z.string().trim().email("Invalid email").max(255);
-const passwordSchema = z.string().min(8, "Min 8 characters").max(72);
-const nameSchema = z.string().trim().min(1).max(100);
+import { emailSchema, passwordSchema, nameSchema } from "@/lib/validation";
 
 const searchSchema = z.object({ next: z.string().optional() });
 

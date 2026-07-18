@@ -3,6 +3,7 @@ import { createMiddleware } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from './types'
+import { checkRateLimit, RATE_LIMIT_CONFIG } from '@/lib/rate-limiter'
 
 
 
@@ -41,34 +42,48 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
         ...(!SUPABASE_URL ? ['SUPABASE_URL'] : []),
         ...(!SUPABASE_PUBLISHABLE_KEY ? ['SUPABASE_PUBLISHABLE_KEY'] : []),
       ];
-      const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Connect Supabase in Lovable Cloud.`;
-      console.error(`[Supabase] ${message}`);
-      throw new Error(message);
+      console.error(`[Supabase] Missing env var(s): ${missing.join(', ')}`);
+      throw new Error('Service temporarily unavailable');
+    }
+
+    const request = getRequest();
+    const ip = request?.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request?.headers.get("x-real-ip") || "unknown";
+    
+    const { allowed } = checkRateLimit(`public:${ip}`, {
+      windowSeconds: RATE_LIMIT_CONFIG.public.perIp.windowSeconds,
+      maxRequests: RATE_LIMIT_CONFIG.public.perIp.maxRequests,
+    });
+    
+    if (!allowed) {
+      console.error(`[Auth] Rate limit exceeded for IP: ${ip}`);
+      throw new Error('Too many requests. Please try again later.');
     }
     
-    const request = getRequest();
 
     if (!request?.headers) {
-      throw new Error('Unauthorized: No request headers available');
+      console.error('[Auth] No request headers available');
+      throw new Error('Authentication required');
     }
 
     const authHeader = request.headers.get('authorization');
 
     if (!authHeader) {
-      throw new Error('Unauthorized: No authorization header provided');
+      throw new Error('Authentication required');
     }
 
     if (!authHeader.startsWith('Bearer ')) {
-      throw new Error('Unauthorized: Only Bearer tokens are supported');
+      console.error('[Auth] Non-bearer auth header received');
+      throw new Error('Authentication required');
     }
 
     const token = authHeader.replace('Bearer ', '');
     if (!token) {
-      throw new Error('Unauthorized: No token provided');
+      throw new Error('Authentication required');
     }
 
     if (token.split('.').length !== 3) {
-      throw new Error('Unauthorized: Invalid token');
+      console.error('[Auth] Malformed token (not 3-part JWT)');
+      throw new Error('Authentication required');
     }
 
     const supabase = createClient<Database>(
@@ -91,11 +106,13 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
 
     const { data, error } = await supabase.auth.getClaims(token);
     if (error || !data?.claims) {
-      throw new Error('Unauthorized: Invalid token');
+      console.error('[Auth] Token validation failed:', error?.message ?? 'no claims');
+      throw new Error('Authentication required');
     }
 
     if (!data.claims.sub) {
-      throw new Error('Unauthorized: No user ID found in token');
+      console.error('[Auth] Token has no sub claim');
+      throw new Error('Authentication required');
     }
 
     return next({

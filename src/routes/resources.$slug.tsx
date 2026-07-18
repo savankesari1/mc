@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { reviewFormSchema } from "@/lib/validation";
 
 import {
   createRazorpayOrder,
@@ -191,7 +192,8 @@ function ResourceDetail() {
             // Refresh purchase status — button will change to "View Document"
             qc.invalidateQueries({ queryKey: ["purchase", resource.id, user.id] });
           } catch (e) {
-            toast.error("Verification failed: " + (e as Error).message, { id: "payment-verify" });
+            console.error("[PaymentVerify]", e);
+            toast.error("Payment verification failed. Contact support if you were charged.", { id: "payment-verify" });
           } finally {
             setIsProcessingBuy(false);
           }
@@ -202,7 +204,8 @@ function ResourceDetail() {
       });
       rzp.open();
     } catch (e) {
-      toast.error("Checkout error: " + (e as Error).message);
+      console.error("[Checkout]", e);
+      toast.error("Could not start checkout. Please try again.");
       setIsProcessingBuy(false);
     }
   }
@@ -234,7 +237,8 @@ function ResourceDetail() {
         }, 100);
       }
     } catch (e) {
-      toast.error("Could not load document: " + (e as Error).message);
+      console.error("[DocumentLoad]", e);
+      toast.error("Could not load document. Please try again.");
     } finally {
       setIsLoadingDoc(false);
     }
@@ -509,18 +513,34 @@ function ReviewForm({ resourceId }: { resourceId: string }) {
 
   async function submit() {
     setBusy(true);
-    const { data: u } = await supabase.auth.getUser();
-    if (!u.user) { setBusy(false); return; }
-    await supabase
-      .from("reviews")
-      .upsert(
-        { resource_id: resourceId, user_id: u.user.id, rating, comment },
-        { onConflict: "resource_id,user_id" as never },
-      );
-    setBusy(false);
-    setComment("");
-    qc.invalidateQueries({ queryKey: ["reviews", resourceId] });
-    toast.success("Review submitted!");
+    try {
+      const validated = reviewFormSchema.parse({ rating, comment });
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) { setBusy(false); return; }
+      const { error } = await supabase
+        .from("reviews")
+        .upsert(
+          { resource_id: resourceId, user_id: u.user.id, rating: validated.rating, comment: validated.comment ?? "" },
+          { onConflict: "resource_id,user_id" as never },
+        );
+      if (error) {
+        console.error("[Review] Submit failed:", error);
+        toast.error("Failed to submit review. Please try again.");
+      } else {
+        setComment("");
+        qc.invalidateQueries({ queryKey: ["reviews", resourceId] });
+        toast.success("Review submitted!");
+      }
+    } catch (err) {
+      if (err && typeof err === "object" && "issues" in err) {
+        toast.error((err as { issues: Array<{ message: string }> }).issues[0]?.message ?? "Invalid input");
+      } else {
+        console.error("[Review] Unexpected error:", err);
+        toast.error("Failed to submit review.");
+      }
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
