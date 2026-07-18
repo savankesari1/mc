@@ -241,6 +241,13 @@ After understanding a file:
 - Full file reads when snippets suffice
 - Ignoring budget warnings
 
+## Ralph Loop Protocol
+
+When running under an autonomous Ralph Loop:
+1. **Completion Promise**: The model must explicitly write the completion promise (e.g. `DONE` in `.gsd/STATE.md` or a `<promise>DONE</promise>` tag in logs) when the objective is fully met and verified.
+2. **One Task Per Iteration**: Focus on completing exactly one task per loop iteration. Do not rush to code multiple tasks in a single turn unless they are tightly bound.
+3. **Self-Healing**: If tests or compilation fails, use the next iteration to read the logs and correct the errors. The loop will restart automatically to let you correct course.
+
 ---
 
 ## Quick Reference
