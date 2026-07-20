@@ -79,15 +79,34 @@ function ResourceDetail() {
     queryKey: ["reviews", resource?.id],
     queryFn: async () => {
       if (!resource) return [];
-      const { data } = await supabase
+      // Fetch reviews without the broken profiles join (reviews.user_id → auth.users, not profiles)
+      const { data: reviewRows } = await supabase
         .from("reviews")
-        .select("id, rating, comment, created_at, user_id, profiles(full_name, avatar_url)")
+        .select("id, rating, comment, created_at, user_id")
         .eq("resource_id", resource.id)
         .order("created_at", { ascending: false });
-      return data ?? [];
+
+      if (!reviewRows || reviewRows.length === 0) return [];
+
+      // Fetch profiles for all unique reviewer user IDs
+      const userIds = [...new Set(reviewRows.map((r) => r.user_id))];
+      const { data: profileRows } = await supabase
+        .from("profiles")
+        .select("id, full_name, avatar_url")
+        .in("id", userIds);
+
+      const profileMap = Object.fromEntries(
+        (profileRows ?? []).map((p) => [p.id, p]),
+      );
+
+      return reviewRows.map((r) => ({
+        ...r,
+        profiles: profileMap[r.user_id] ?? null,
+      }));
     },
     enabled: !!resource,
   });
+
 
   const { data: purchase } = useQuery({
     queryKey: ["purchase", resource?.id, user?.id],
