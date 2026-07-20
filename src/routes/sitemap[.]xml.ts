@@ -17,6 +17,7 @@ export const APIRoute = createAPIFileRoute("/sitemap.xml")({
       { path: "/contact", changefreq: "monthly", priority: "0.5" },
       { path: "/terms", changefreq: "monthly", priority: "0.3" },
       { path: "/privacy", changefreq: "monthly", priority: "0.3" },
+      { path: "/refund", changefreq: "monthly", priority: "0.3" },
     ];
 
     const urls = entries.map((e) =>

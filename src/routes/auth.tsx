@@ -1,15 +1,15 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState, useEffect, lazy, Suspense } from "react";
 import { z } from "zod";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { ArrowLeft } from "lucide-react";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 
 // Lazy load DotField so it never runs during SSR
 const DotField = lazy(() => import("@/components/ui/DotField"));
@@ -29,8 +29,10 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+type Mode = "signin" | "signup" | "forgot";
+
 function AuthPage() {
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -94,6 +96,26 @@ function AuthPage() {
     }
   }
 
+  async function handleForgotPassword(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const parsedEmail = emailSchema.parse(email);
+      const { error } = await supabase.auth.resetPasswordForEmail(parsedEmail, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
+      if (error) throw error;
+      toast.success("Password reset email sent — check your inbox.");
+      setMode("signin");
+      setEmail("");
+    } catch (err) {
+      const msg = err instanceof z.ZodError ? err.issues[0].message : (err as Error).message;
+      toast.error(msg);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function handleGoogle() {
     setBusy(true);
     const { error } = await supabase.auth.signInWithOAuth({
@@ -107,6 +129,13 @@ function AuthPage() {
       setBusy(false);
     }
   }
+
+  const heading =
+    mode === "signin" ? "Sign in" : mode === "signup" ? "Create account" : "Reset password";
+  const subheading =
+    mode === "forgot"
+      ? "Enter your email and we'll send you a reset link."
+      : "Access purchased resources, wishlists, and downloads.";
 
   return (
     <div className="relative min-h-screen bg-background overflow-hidden">
@@ -136,112 +165,165 @@ function AuthPage() {
       <div className="relative z-10">
         <Header />
         <main className="mx-auto max-w-md px-6 pt-36 pb-24 min-h-screen flex flex-col justify-center">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="rounded-2xl border border-border/40 bg-surface/30 backdrop-blur-xl p-8 shadow-2xl"
-          >
-            <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-              Welcome
-            </p>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tighter">
-              {mode === "signin" ? "Sign in" : "Create account"}
-            </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Access purchased resources, wishlists, and downloads.
-            </p>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={mode}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="rounded-2xl border border-border/40 bg-surface/30 backdrop-blur-xl p-8 shadow-2xl"
+            >
+              <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+                Welcome
+              </p>
+              <h1 className="mt-3 text-3xl font-semibold tracking-tighter">{heading}</h1>
+              <p className="mt-2 text-sm text-muted-foreground">{subheading}</p>
 
-            <div className="mt-7 space-y-4">
-              {/* Google */}
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full h-11 rounded-full bg-surface/40 backdrop-blur-sm border-border/60 hover:bg-surface/70 transition-all duration-300"
-                onClick={handleGoogle}
-                disabled={busy}
-              >
-                <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
-                Continue with Google
-              </Button>
+              <div className="mt-7 space-y-4">
+                {/* ── Forgot password form ── */}
+                {mode === "forgot" && (
+                  <>
+                    <form onSubmit={handleForgotPassword} className="space-y-3">
+                      <div>
+                        <Label htmlFor="reset-email">Email</Label>
+                        <Input
+                          id="reset-email"
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="mt-1.5 h-11 bg-surface/30 backdrop-blur-sm border-border/60"
+                          required
+                          maxLength={255}
+                          placeholder="you@example.com"
+                        />
+                      </div>
+                      <Button
+                        type="submit"
+                        className="w-full h-11 rounded-full mt-1 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                        disabled={busy}
+                      >
+                        {busy ? "Sending…" : "Send reset link"}
+                      </Button>
+                    </form>
 
-              {/* Divider */}
-              <div className="relative py-1">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-border/50" />
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="bg-transparent px-3 text-xs text-muted-foreground">
-                    or continue with email
-                  </span>
-                </div>
-              </div>
-
-              {/* Email / Password */}
-              <form onSubmit={handleSubmit} className="space-y-3">
-                {mode === "signup" && (
-                  <div>
-                    <Label htmlFor="full-name">Full name</Label>
-                    <Input
-                      id="full-name"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      className="mt-1.5 h-11 bg-surface/30 backdrop-blur-sm border-border/60"
-                      required
-                      maxLength={100}
-                    />
-                  </div>
+                    <button
+                      type="button"
+                      className="flex items-center gap-1.5 w-full justify-center text-sm text-muted-foreground hover:text-foreground transition-colors pt-1"
+                      onClick={() => { setMode("signin"); setEmail(""); }}
+                    >
+                      <ArrowLeft className="h-3.5 w-3.5" />
+                      Back to sign in
+                    </button>
+                  </>
                 )}
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="mt-1.5 h-11 bg-surface/30 backdrop-blur-sm border-border/60"
-                    required
-                    maxLength={255}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="mt-1.5 h-11 bg-surface/30 backdrop-blur-sm border-border/60"
-                    required
-                    minLength={8}
-                    maxLength={72}
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full h-11 rounded-full mt-1 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-                  disabled={busy}
-                >
-                  {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
-                </Button>
-              </form>
 
-              <button
-                type="button"
-                className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors pt-1"
-                onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-              >
-                {mode === "signin"
-                  ? "New here? Create an account"
-                  : "Already have an account? Sign in"}
-              </button>
-            </div>
-          </motion.div>
+                {/* ── Sign in / Sign up forms ── */}
+                {mode !== "forgot" && (
+                  <>
+                    {/* Google */}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full h-11 rounded-full bg-surface/40 backdrop-blur-sm border-border/60 hover:bg-surface/70 transition-all duration-300"
+                      onClick={handleGoogle}
+                      disabled={busy}
+                    >
+                      <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                      </svg>
+                      Continue with Google
+                    </Button>
+
+                    {/* Divider */}
+                    <div className="relative py-1">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-border/50" />
+                      </div>
+                      <div className="relative flex justify-center">
+                        <span className="bg-transparent px-3 text-xs text-muted-foreground">
+                          or continue with email
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Email / Password */}
+                    <form onSubmit={handleSubmit} className="space-y-3">
+                      {mode === "signup" && (
+                        <div>
+                          <Label htmlFor="full-name">Full name</Label>
+                          <Input
+                            id="full-name"
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
+                            className="mt-1.5 h-11 bg-surface/30 backdrop-blur-sm border-border/60"
+                            required
+                            maxLength={100}
+                          />
+                        </div>
+                      )}
+                      <div>
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="mt-1.5 h-11 bg-surface/30 backdrop-blur-sm border-border/60"
+                          required
+                          maxLength={255}
+                        />
+                      </div>
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="password">Password</Label>
+                          {mode === "signin" && (
+                            <button
+                              type="button"
+                              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                              onClick={() => setMode("forgot")}
+                            >
+                              Forgot password?
+                            </button>
+                          )}
+                        </div>
+                        <Input
+                          id="password"
+                          type="password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="mt-1.5 h-11 bg-surface/30 backdrop-blur-sm border-border/60"
+                          required
+                          minLength={8}
+                          maxLength={72}
+                        />
+                      </div>
+                      <Button
+                        type="submit"
+                        className="w-full h-11 rounded-full mt-1 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                        disabled={busy}
+                      >
+                        {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
+                      </Button>
+                    </form>
+
+                    <button
+                      type="button"
+                      className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors pt-1"
+                      onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+                    >
+                      {mode === "signin"
+                        ? "New here? Create an account"
+                        : "Already have an account? Sign in"}
+                    </button>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </main>
         <Footer />
       </div>

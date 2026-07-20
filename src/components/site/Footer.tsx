@@ -31,6 +31,7 @@ export function Footer() {
           <ul className="mt-4 space-y-2 text-sm">
             <li><Link to="/terms" className="text-muted-foreground hover:text-foreground transition-colors">Terms</Link></li>
             <li><Link to="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">Privacy</Link></li>
+            <li><Link to="/refund" className="text-muted-foreground hover:text-foreground transition-colors">Refund Policy</Link></li>
           </ul>
         </div>
       </div>
