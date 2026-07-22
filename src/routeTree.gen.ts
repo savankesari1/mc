@@ -11,11 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ResourcesRouteImport } from './routes/resources'
+import { Route as RefundRouteImport } from './routes/refund'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
@@ -24,6 +24,7 @@ import { Route as ResourcesIndexRouteImport } from './routes/resources.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as ResourcesSlugRouteImport } from './routes/resources.$slug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 
 const TermsRoute = TermsRouteImport.update({
@@ -34,6 +35,11 @@ const TermsRoute = TermsRouteImport.update({
 const ResourcesRoute = ResourcesRouteImport.update({
   id: '/resources',
   path: '/resources',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RefundRoute = RefundRouteImport.update({
+  id: '/refund',
+  path: '/refund',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -55,11 +61,6 @@ const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
-  id: '/auth/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => AuthRoute,
 } as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
@@ -100,6 +101,11 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => BlogRoute,
 } as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -110,14 +116,15 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
-  '/auth': typeof AuthRoute
-  '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/auth': typeof AuthRouteWithChildren
   '/blog': typeof BlogRouteWithChildren
   '/contact': typeof ContactRoute
   '/privacy': typeof PrivacyRoute
+  '/refund': typeof RefundRoute
   '/resources': typeof ResourcesRouteWithChildren
   '/terms': typeof TermsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/resources/$slug': typeof ResourcesSlugRoute
   '/blog/': typeof BlogIndexRoute
@@ -127,12 +134,13 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
-  '/auth': typeof AuthRoute
-  '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/auth': typeof AuthRouteWithChildren
   '/contact': typeof ContactRoute
   '/privacy': typeof PrivacyRoute
+  '/refund': typeof RefundRoute
   '/terms': typeof TermsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/resources/$slug': typeof ResourcesSlugRoute
   '/blog': typeof BlogIndexRoute
@@ -144,14 +152,15 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
-  '/auth': typeof AuthRoute
-  '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/auth': typeof AuthRouteWithChildren
   '/blog': typeof BlogRouteWithChildren
   '/contact': typeof ContactRoute
   '/privacy': typeof PrivacyRoute
+  '/refund': typeof RefundRoute
   '/resources': typeof ResourcesRouteWithChildren
   '/terms': typeof TermsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/resources/$slug': typeof ResourcesSlugRoute
   '/blog/': typeof BlogIndexRoute
@@ -164,13 +173,14 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/auth'
-    | '/auth/reset-password'
     | '/blog'
     | '/contact'
     | '/privacy'
+    | '/refund'
     | '/resources'
     | '/terms'
     | '/dashboard'
+    | '/auth/reset-password'
     | '/blog/$slug'
     | '/resources/$slug'
     | '/blog/'
@@ -181,11 +191,12 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/auth'
-    | '/auth/reset-password'
     | '/contact'
     | '/privacy'
+    | '/refund'
     | '/terms'
     | '/dashboard'
+    | '/auth/reset-password'
     | '/blog/$slug'
     | '/resources/$slug'
     | '/blog'
@@ -197,13 +208,14 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/auth'
-    | '/auth/reset-password'
     | '/blog'
     | '/contact'
     | '/privacy'
+    | '/refund'
     | '/resources'
     | '/terms'
     | '/_authenticated/dashboard'
+    | '/auth/reset-password'
     | '/blog/$slug'
     | '/resources/$slug'
     | '/blog/'
@@ -219,6 +231,7 @@ export interface RootRouteChildren {
   BlogRoute: typeof BlogRouteWithChildren
   ContactRoute: typeof ContactRoute
   PrivacyRoute: typeof PrivacyRoute
+  RefundRoute: typeof RefundRoute
   ResourcesRoute: typeof ResourcesRouteWithChildren
   TermsRoute: typeof TermsRoute
 }
@@ -237,6 +250,13 @@ declare module '@tanstack/react-router' {
       path: '/resources'
       fullPath: '/resources'
       preLoaderRoute: typeof ResourcesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/refund': {
+      id: '/refund'
+      path: '/refund'
+      fullPath: '/refund'
+      preLoaderRoute: typeof RefundRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -266,13 +286,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/auth/reset-password': {
-      id: '/auth/reset-password'
-      path: '/reset-password'
-      fullPath: '/auth/reset-password'
-      preLoaderRoute: typeof AuthResetPasswordRouteImport
-      parentRoute: typeof AuthRoute
     }
     '/admin': {
       id: '/admin'
@@ -330,6 +343,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof BlogRoute
     }
+    '/auth/reset-password': {
+      id: '/auth/reset-password'
+      path: '/reset-password'
+      fullPath: '/auth/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -350,6 +370,16 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
+interface AuthRouteChildren {
+  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthResetPasswordRoute: AuthResetPasswordRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface BlogRouteChildren {
   BlogSlugRoute: typeof BlogSlugRoute
@@ -377,16 +407,6 @@ const ResourcesRouteWithChildren = ResourcesRoute._addFileChildren(
   ResourcesRouteChildren,
 )
 
-interface AuthRouteChildren {
-  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
-}
-
-const AuthRouteChildren: AuthRouteChildren = {
-  AuthResetPasswordRoute: AuthResetPasswordRoute,
-}
-
-const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -396,6 +416,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogRoute: BlogRouteWithChildren,
   ContactRoute: ContactRoute,
   PrivacyRoute: PrivacyRoute,
+  RefundRoute: RefundRoute,
   ResourcesRoute: ResourcesRouteWithChildren,
   TermsRoute: TermsRoute,
 }
