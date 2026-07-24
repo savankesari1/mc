@@ -106,7 +106,7 @@ function AboutPage() {
           >
             Our principles
           </motion.p>
-          <div className="grid sm:grid-cols-2 gap-4 sm:gap-5">
+          <div className="grid sm:grid-cols-2 gap-5 sm:gap-6">
             {values.map((v, i) => (
               <motion.div
                 key={v.title}
@@ -116,11 +116,11 @@ function AboutPage() {
                 transition={{ duration: 0.6, delay: i * 0.07, ease: easeOut }}
                 className="group relative p-6 sm:p-7 rounded-2xl border border-border/40 bg-surface/20 hover:bg-surface/40 hover:border-border/80 transition-[background,border-color,transform] duration-300 hover:scale-[1.015]"
               >
-                <div className="h-10 w-10 rounded-xl bg-white/5 border border-white/8 grid place-items-center mb-5 transition-[background,transform] duration-300 group-hover:bg-white/10 group-hover:scale-110">
-                  <v.icon className="h-4.5 w-4.5 text-white/60 group-hover:text-white/90 transition-colors duration-300" />
+                <div className="h-8 w-8 rounded-xl bg-white/5 border border-white/8 grid place-items-center mb-6 transition-[background,transform] duration-300 group-hover:bg-white/10 group-hover:scale-110">
+                  <v.icon className="h-4 w-4 text-white/60 group-hover:text-white/90 transition-colors duration-300" />
                 </div>
-                <h3 className="text-base font-semibold text-white">{v.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{v.body}</p>
+                <h3 className="text-sm font-semibold text-white">{v.title}</h3>
+                <p className="mt-3 text-xs text-muted-foreground leading-relaxed">{v.body}</p>
               </motion.div>
             ))}
           </div>
