@@ -12,8 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { contactFormSchema } from "@/lib/validation";
-
-const DotField = lazy(() => import("@/components/ui/DotField"));
+import { FloatingPaths } from "@/components/ui/background-paths";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -85,33 +84,17 @@ function ContactPage() {
 
   return (
     <div className="relative min-h-screen bg-background overflow-hidden">
-      {/* DotField bg — client only */}
-      {isClient && (
-        <div className="absolute inset-0 z-0 opacity-50">
-          <Suspense fallback={null}>
-            <DotField
-              dotRadius={1}
-              dotSpacing={28}
-              cursorRadius={180}
-              cursorForce={0.06}
-              bulgeOnly={true}
-              bulgeStrength={30}
-              glowRadius={100}
-              sparkle={false}
-              gradientFrom="rgba(255,255,255,0.5)"
-              gradientTo="rgba(255,255,255,0.08)"
-              glowColor="#0d0e14"
-            />
-          </Suspense>
-        </div>
-      )}
-      {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-64 z-[2] bg-gradient-to-t from-background to-transparent pointer-events-none" />
+      <div className="absolute inset-0 z-0 opacity-80 pointer-events-none">
+        <FloatingPaths position={1} />
+        <FloatingPaths position={-1} />
+      </div>
+      {/* Gradient overlay to ensure text is readable over the lines */}
+      <div className="absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-background/60 to-background/95 pointer-events-none" />
 
       <div className="relative z-10">
         <Header />
 
-        <main className="mx-auto max-w-5xl px-4 sm:px-6 pt-32 sm:pt-40 pb-24 sm:pb-32 min-h-screen">
+        <main className="mx-auto max-w-5xl px-4 sm:px-6 pt-36 sm:pt-44 pb-24 sm:pb-32 min-h-screen">
           <motion.div
             initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -120,7 +103,7 @@ function ContactPage() {
             <p className="font-mono text-[10px] sm:text-xs uppercase tracking-widest text-muted-foreground/60">
               Contact
             </p>
-            <h1 className="mt-4 text-4xl sm:text-5xl font-semibold tracking-tighter">
+            <h1 className="mt-4 text-5xl sm:text-6xl md:text-7xl font-semibold tracking-tighter">
               Say hello.
             </h1>
             <p className="mt-4 max-w-lg text-muted-foreground text-sm sm:text-base leading-relaxed">

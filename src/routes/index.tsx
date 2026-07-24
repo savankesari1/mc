@@ -135,7 +135,7 @@ function Home() {
       <main className="overflow-x-hidden">
 
         {/* ─── HERO ───────────────────────────────────────────────────────────── */}
-        <section className="relative flex min-h-[100dvh] items-center justify-center overflow-hidden pt-16 border-b border-border">
+        <section className="relative flex min-h-[100dvh] items-center justify-center overflow-hidden pt-24 border-b border-border">
 
           {/* FloatingLines WebGL — client-only, SSR-safe */}
           {isClient && !reduce && (

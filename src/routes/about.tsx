@@ -61,7 +61,7 @@ function AboutPage() {
       <main className="min-h-screen">
 
         {/* Hero */}
-        <section className="mx-auto max-w-3xl px-4 sm:px-6 pt-36 sm:pt-44 pb-16">
+        <section className="mx-auto max-w-3xl px-4 sm:px-6 pt-32 sm:pt-40 pb-16">
           <motion.div
             initial="hidden"
             animate="visible"
