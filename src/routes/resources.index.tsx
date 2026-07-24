@@ -1,25 +1,28 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { useState, useEffect } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Lock, Loader2, Unlock, ArrowRight, FileText } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 
-import { Particles } from "@/components/ui/Particles";
+const DotField = lazy(() => import("@/components/ui/DotField"));
 
-export const Route = createFileRoute('/resources/')({
+export const Route = createFileRoute("/resources/")({
   head: () => ({
     meta: [
       { title: "Resources — Payal Education Society Computers" },
-      { name: "description", content: "Browse our premium library of computer training, programming, and competitive exam resources." },
+      {
+        name: "description",
+        content:
+          "Browse our premium library of computer training, programming, and competitive exam resources.",
+      },
     ],
   }),
   component: ResourcesPage,
-})
+});
 
 interface Resource {
   id: string;
@@ -32,88 +35,91 @@ interface Resource {
   thumbnail_url: string | null;
 }
 
-function ResourceCard({ resource }: { resource: Resource }) {
+const easeOut = [0.23, 1, 0.32, 1] as const;
+
+function ResourceCard({ resource, index }: { resource: Resource; index: number }) {
   const [thumbError, setThumbError] = useState(false);
 
   return (
-    <Card className="flex flex-col border-border/50 bg-surface/50 hover:bg-surface transition-colors overflow-hidden">
-      {/* Thumbnail — always show a 16/9 area, fall back to gradient */}
-      <div className="aspect-[16/9] overflow-hidden relative">
+    <motion.div
+      initial={{ opacity: 0, y: 28 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.6, delay: index * 0.06, ease: easeOut }}
+      className="group flex flex-col rounded-2xl border border-border/40 bg-surface/20 hover:bg-surface/40 hover:border-border/80 overflow-hidden transition-[background,border-color,transform,box-shadow] duration-300 hover:scale-[1.015] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.5)]"
+    >
+      {/* Thumbnail */}
+      <div className="aspect-[16/9] overflow-hidden relative bg-surface/40 shrink-0">
         {resource.thumbnail_url && !thumbError ? (
           <img
             src={resource.thumbnail_url}
             alt={resource.title}
-            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             referrerPolicy="no-referrer"
             onError={() => setThumbError(true)}
           />
         ) : (
-          <div
-            className="w-full h-full flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%)" }}
-          >
-            <FileText className="h-10 w-10 text-white/25" />
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-surface to-surface/60">
+            <FileText className="h-8 w-8 text-white/15" />
           </div>
         )}
-        {/* Price badge overlay */}
-        <div className="absolute top-2 right-2">
+        {/* Price badge */}
+        <div className="absolute top-3 right-3">
           {resource.is_free || resource.price_inr <= 0 ? (
-            <span className="bg-green-500/90 text-white text-xs font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm">
+            <span className="bg-emerald-500/90 text-white text-[10px] font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm">
               Free
             </span>
           ) : (
-            <span className="bg-black/70 text-white text-xs font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm">
+            <span className="bg-black/70 text-white text-[10px] font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm border border-white/10">
               ₹{resource.price_inr}
             </span>
           )}
         </div>
       </div>
 
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg leading-snug">{resource.title}</CardTitle>
-      </CardHeader>
-
-      <CardContent className="flex-grow pt-0">
-        <p className="text-sm text-muted-foreground line-clamp-3">
+      {/* Content */}
+      <div className="flex flex-col flex-1 p-5 sm:p-6">
+        <h3 className="text-base font-semibold text-white leading-snug">{resource.title}</h3>
+        <p className="mt-2 text-sm text-muted-foreground line-clamp-2 leading-relaxed flex-1">
           {resource.description ?? "No description available."}
         </p>
-      </CardContent>
 
-      <CardFooter>
-        <Button asChild className="w-full" variant={resource.is_free ? "outline" : "default"}>
-          <Link to="/resources/$slug" params={{ slug: resource.slug }}>
-            {resource.is_free ? (
-              <>
-                <Unlock className="w-4 h-4 mr-2" />
-                View Free Resource
-              </>
-            ) : (
-              <>
-                <Lock className="w-4 h-4 mr-2" />
-                Buy &amp; Unlock
-              </>
-            )}
-            <ArrowRight className="w-4 h-4 ml-auto" />
-          </Link>
-        </Button>
-      </CardFooter>
-    </Card>
+        <Link
+          to="/resources/$slug"
+          params={{ slug: resource.slug }}
+          className="mt-5 inline-flex items-center justify-center gap-2 h-10 rounded-full border text-sm font-medium transition-[background,border-color,transform] duration-200 active:scale-[0.97] px-4 w-full group/btn"
+          style={{
+            borderColor: resource.is_free ? "oklch(1 0 0 / 16%)" : "oklch(1 0 0 / 20%)",
+            background: resource.is_free ? "transparent" : "oklch(1 0 0 / 6%)",
+            color: "oklch(0.98 0 0)",
+          }}
+        >
+          {resource.is_free ? (
+            <><Unlock className="w-3.5 h-3.5 text-emerald-400" /> View Free</>
+          ) : (
+            <><Lock className="w-3.5 h-3.5 text-white/60" /> Buy & Unlock</>
+          )}
+          <ArrowRight className="w-3.5 h-3.5 ml-auto transition-transform duration-200 group-hover/btn:translate-x-0.5" />
+        </Link>
+      </div>
+    </motion.div>
   );
 }
 
 function ResourcesPage() {
   const [resources, setResources] = useState<Resource[]>([]);
   const [loadingResources, setLoadingResources] = useState(true);
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => { setIsClient(true); }, []);
 
   useEffect(() => {
     async function fetchResources() {
       try {
         const { data, error } = await supabase
-          .from('resources')
-          .select('id, slug, title, description, price_inr, is_free, is_published, thumbnail_url')
-          .eq('is_published', true)
-          .order('created_at', { ascending: false });
-
+          .from("resources")
+          .select("id, slug, title, description, price_inr, is_free, is_published, thumbnail_url")
+          .eq("is_published", true)
+          .order("created_at", { ascending: false });
         if (error) throw error;
         setResources(data ?? []);
       } catch (error) {
@@ -123,61 +129,84 @@ function ResourcesPage() {
         setLoadingResources(false);
       }
     }
-
     fetchResources();
   }, []);
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-background">
       <Header />
 
-      <main className="flex-1">
-        <div className="relative w-full h-[350px] md:h-[450px] flex items-center justify-center overflow-hidden border-b border-border">
-          <div className="absolute inset-0 z-0 bg-background">
-            <Particles
-              particleColors={["#ffffff", "#6366f1", "#a855f7"]}
-              particleCount={50}
-              particleSpread={10}
-              speed={0.05}
-              particleBaseSize={100}
-              moveParticlesOnHover={false}
-              alphaParticles={false}
-              disableRotation={false}
-            />
+      {/* Hero */}
+      <section className="relative w-full min-h-[360px] md:min-h-[440px] flex items-center justify-center overflow-hidden border-b border-border">
+        {/* DotField background — client only */}
+        {isClient && (
+          <div className="absolute inset-0 z-0">
+            <Suspense fallback={null}>
+              <DotField
+                dotRadius={1.5}
+                dotSpacing={22}
+                cursorRadius={200}
+                cursorForce={0.08}
+                bulgeOnly={true}
+                bulgeStrength={40}
+                glowRadius={120}
+                sparkle={false}
+                gradientFrom="rgba(255,255,255,0.7)"
+                gradientTo="rgba(255,255,255,0.12)"
+                glowColor="#0d0e14"
+              />
+            </Suspense>
           </div>
-          
-          {/* Overlay to ensure text readability */}
-          <div className="absolute inset-0 z-[5] bg-gradient-to-b from-background/40 via-background/10 to-background/90" />
-          
-          <div className="relative z-10 text-center px-6 mt-16">
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tighter drop-shadow-md">
-              Resource Library
-            </h1>
-            <p className="text-muted-foreground mt-4 max-w-xl mx-auto text-lg">
-              Premium courses and materials. Purchase once, access forever.
-            </p>
+        )}
+        {/* Vignette */}
+        <div className="absolute inset-0 z-[5] bg-gradient-to-b from-background/50 via-transparent to-background/90 pointer-events-none" />
+
+        <div className="relative z-10 text-center px-4 sm:px-6 pt-28 pb-8">
+          <motion.p
+            initial={{ opacity: 0, y: 12, filter: "blur(6px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            transition={{ duration: 0.6, ease: easeOut }}
+            className="font-mono text-[10px] sm:text-xs uppercase tracking-widest text-muted-foreground/60 mb-4"
+          >
+            Library
+          </motion.p>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1, ease: easeOut }}
+            className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tighter text-white"
+          >
+            Resource Library
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2, ease: easeOut }}
+            className="mt-4 text-muted-foreground max-w-md mx-auto text-sm sm:text-base"
+          >
+            Premium courses and materials. Purchase once, access forever.
+          </motion.p>
+        </div>
+      </section>
+
+      {/* Grid */}
+      <main className="flex-1 mx-auto w-full max-w-6xl px-4 sm:px-6 py-14 sm:py-20">
+        {loadingResources ? (
+          <div className="flex justify-center items-center py-24">
+            <Loader2 className="h-7 w-7 animate-spin text-white/40" />
+            <span className="ml-3 text-sm text-muted-foreground">Loading…</span>
           </div>
-        </div>
-
-        <div className="container mx-auto py-16 px-6">
-
-          {loadingResources ? (
-            <div className="flex justify-center items-center py-20">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <span className="ml-3 text-muted-foreground">Loading resources...</span>
-            </div>
-          ) : resources.length === 0 ? (
-            <div className="text-center py-20 text-muted-foreground">
-              <p>No resources have been published yet. Check back soon!</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {resources.map((resource) => (
-                <ResourceCard key={resource.id} resource={resource} />
-              ))}
-            </div>
-          )}
-        </div>
+        ) : resources.length === 0 ? (
+          <div className="text-center py-24">
+            <p className="text-muted-foreground text-sm">No resources published yet. Check back soon.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+            {resources.map((resource, i) => (
+              <ResourceCard key={resource.id} resource={resource} index={i} />
+            ))}
+          </div>
+        )}
       </main>
 
       <Footer />
