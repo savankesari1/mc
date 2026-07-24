@@ -86,9 +86,7 @@ export function Footer() {
           <p className="text-xs text-muted-foreground/60">
             © {new Date().getFullYear()} Payal Education Society. All rights reserved.
           </p>
-          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground/30">
-            Built with craft
-          </p>
+
         </div>
       </div>
     </footer>
