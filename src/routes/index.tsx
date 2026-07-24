@@ -191,7 +191,7 @@ function Home() {
               </motion.h1>
               <motion.h1
                 variants={itemVariants}
-                className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-violet-400 to-pink-400 leading-[1.1] mt-2"
+                className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tighter text-muted-foreground leading-[1.1] mt-2"
               >
                 Built for serious students.
               </motion.h1>
@@ -215,8 +215,8 @@ function Home() {
                 >
                   <span className="relative z-10">Browse resources</span>
                   <ArrowRight className="relative z-10 h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-                  {/* Subtle shimmer on hover */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-200/60 via-white to-violet-200/60 opacity-0 transition-opacity duration-300 group-hover:opacity-60" />
+                  {/* Neutral shimmer on hover — no purple */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                 </Link>
                 <Link
                   to="/about"
